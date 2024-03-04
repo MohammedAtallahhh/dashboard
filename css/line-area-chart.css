@@ -1,0 +1,67 @@
+.line-area-chart .axis--y .domain {
+  display: none;
+}
+
+.line-area-chart .series-path {
+  stroke-linejoin: round;
+  stroke: currentColor;
+  stroke-width: 2px;
+}
+
+.line-area-chart .series-path--line {
+  fill: none;
+}
+
+.line-area-chart .series-path--area,
+.line-area-chart .series-path--stackedarea {
+  fill: currentColor;
+}
+
+.line-area-chart .active-g {
+  display: none;
+}
+
+.line-area-chart .active-g.is-active {
+  display: inline;
+}
+
+.line-area-chart .active-g .active-line {
+  stroke: currentColor;
+  stroke-width: 1px;
+  stroke-dasharray: 2 4;
+}
+
+.line-area-chart .active-g .active-circle__bg {
+  fill: currentColor;
+  fill-opacity: 0.35;
+}
+
+.line-area-chart .active-g .active-circle__fg {
+  fill: var(--color-background);
+  stroke: currentColor;
+  stroke-width: 2px;
+}
+
+.line-area-chart .capture-rect {
+  fill: none;
+  pointer-events: all;
+}
+
+.line-area-chart .handle--custom {
+  stroke: currentColor;
+  fill: var(--color-background);
+  cursor: ew-resize;
+}
+
+.line-area-chart .brush-g .overlay {
+  pointer-events: none;
+}
+
+.line-area-chart .brush-g.is-brushing .overlay {
+  pointer-events: all;
+}
+
+.line-area-chart .brush-g .selection {
+  fill-opacity: 0.1;
+  stroke: currentColor;
+}

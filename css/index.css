@@ -1,0 +1,290 @@
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+/* Custom properties */
+:root {
+  --color-background: #101015;
+  --color-surface-1: #1b1b1e;
+  --color-surface-2: #2d2d32;
+  --color-text: #f7f7f7;
+  --color-text-light: #b7b7b9;
+}
+
+/* Typography */
+body {
+  font-family: "Roboto", sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 400;
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+@media screen and (min-width: 521px) {
+  body {
+    font-size: 1rem;
+  }
+}
+
+.section-title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: -0.0083333333em;
+  color: var(--color-text);
+}
+
+@media screen and (min-width: 521px) {
+  .section-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media screen and (min-width: 921px) {
+  .section-title {
+    font-size: 2rem;
+  }
+}
+
+.chart-title {
+  font-size: 1.125rem;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+.chart-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+}
+
+.data-label {
+  font-size: 1.375rem;
+  color: var(--color-text);
+}
+
+.sub-label {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+}
+
+.axis-label {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.legend-label {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.footnote {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+/* Color */
+.axis path,
+.axis line {
+  stroke: #bdbdbd;
+}
+
+/* Layout */
+#financial-header {
+  position: fixed;
+  top: 110px;
+  left: 0;
+  width: 100%;
+  z-index: 2;
+  background-color: var(--color-surface-1);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.15);
+}
+
+#financial-header > nav {
+  max-width: 1240px;
+  padding: 24px 40px;
+  margin: auto;
+}
+
+main {
+  max-width: 1240px;
+  padding: 120px 40px;
+  margin: auto;
+  gap: 48px;
+}
+
+section .section-title {
+  margin-bottom: 24px;
+}
+
+section article + article {
+  margin-top: 48px;
+}
+
+@media screen and (min-width: 921px) {
+  section article + article {
+    margin-top: 96px;
+  }
+}
+
+hr {
+  margin: 24px auto;
+  border-color: rgba(0, 0, 0, 0.12);
+  border-width: 1px 0 0;
+  width: 100%;
+}
+
+@media screen and (min-width: 921px) {
+  hr {
+    margin: 48px auto;
+  }
+}
+
+section article {
+  padding: 24px;
+  border-radius: 4px;
+  background-color: var(--color-surface-1);
+}
+
+.chart-container {
+  display: grid;
+  gap: 20px;
+}
+
+/* Navs */
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+  gap: 0.5em 1em;
+}
+
+nav a {
+  text-decoration: none;
+  color: var(--color-text-light);
+}
+
+nav a:hover,
+nav a:active,
+nav a.is-active {
+  color: var(--color-text);
+}
+
+.panel {
+  display: none;
+}
+
+.panel.is-active {
+  display: block;
+}
+
+/* Loader */
+.v-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  background-color: var(--color-background);
+  place-items: center;
+}
+
+.v-overlay.is-active {
+  display: grid;
+}
+
+.v-error {
+  max-width: 960px;
+}
+
+.dot-wave {
+  --uib-size: 47px;
+  --uib-speed: 1s;
+  --uib-color: var(--color-text);
+
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--uib-size);
+  height: calc(var(--uib-size) * 0.17);
+  padding-top: calc(var(--uib-size) * 0.34);
+}
+
+.dot-wave__dot {
+  flex-shrink: 0;
+  width: calc(var(--uib-size) * 0.17);
+  height: calc(var(--uib-size) * 0.17);
+  border-radius: 50%;
+  background-color: var(--uib-color);
+  will-change: transform;
+}
+
+.dot-wave__dot:nth-child(1) {
+  animation: jump var(--uib-speed) ease-in-out calc(var(--uib-speed) * -0.45)
+    infinite;
+}
+
+.dot-wave__dot:nth-child(2) {
+  animation: jump var(--uib-speed) ease-in-out calc(var(--uib-speed) * -0.3)
+    infinite;
+}
+
+.dot-wave__dot:nth-child(3) {
+  animation: jump var(--uib-speed) ease-in-out calc(var(--uib-speed) * -0.15)
+    infinite;
+}
+
+.dot-wave__dot:nth-child(4) {
+  animation: jump var(--uib-speed) ease-in-out infinite;
+}
+
+@keyframes jump {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-200%);
+  }
+}

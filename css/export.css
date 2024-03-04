@@ -1,0 +1,32 @@
+.v-export {
+  display: flex;
+}
+
+.v-export button {
+  -webkit-appearance: button;
+  appearance: button;
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-text);
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  border: 1px solid var(--color-text);
+  border-radius: 0.375rem;
+  background-color: var(--color-background);
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.v-export button:hover,
+.v-export button:active {
+  color: var(--color-background);
+  background-color: var(--color-text);
+}

@@ -1,0 +1,75 @@
+.v-scatter-chart .scatter-container {
+  display: grid;
+  gap: 20px;
+  grid-template-areas:
+    "yContext focus"
+    ". xContext";
+  grid-template-columns: auto 1fr;
+}
+
+.v-scatter-chart .scatter-container .focus-container {
+  grid-area: focus;
+}
+
+.v-scatter-chart .scatter-container .y-context-svg {
+  grid-area: yContext;
+}
+
+.v-scatter-chart .scatter-container .x-context-svg {
+  grid-area: xContext;
+}
+
+.v-scatter-chart .axis--y .domain {
+  display: none;
+}
+
+.v-scatter-chart .dot {
+  fill-opacity: 0.5;
+}
+
+.v-scatter-chart .active-g {
+  display: none;
+}
+
+.v-scatter-chart .active-g.is-active {
+  display: inline;
+}
+
+.v-scatter-chart .active-g .active-circle__bg {
+  fill: currentColor;
+  fill-opacity: 0.35;
+}
+
+.v-scatter-chart .active-g .active-circle__fg {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 2px;
+}
+
+.v-scatter-chart .regression-line {
+  stroke: currentColor;
+  stroke-dasharray: 2 4;
+}
+
+.v-scatter-chart .capture-rect {
+  fill: none;
+  pointer-events: all;
+}
+
+.v-scatter-chart .handle--custom {
+  stroke: currentColor;
+  fill: var(--color-background);
+}
+
+.v-scatter-chart .brush-g .overlay {
+  pointer-events: none;
+}
+
+.v-scatter-chart .brush-g.is-brushing .overlay {
+  pointer-events: all;
+}
+
+.v-scatter-chart .brush-g .selection {
+  fill-opacity: 0.1;
+  stroke: currentColor;
+}

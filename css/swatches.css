@@ -1,0 +1,39 @@
+.v-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 20px;
+  grid-row: 4;
+}
+
+.v-swatches .item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.v-swatches .item__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background-color: var(--color-background);
+}
+
+.v-swatches .is-selected .item__swatch {
+  background-color: currentColor;
+}
+
+.v-swatches .item__label {
+  padding-left: 4px;
+  user-select: none;
+  color: var(--color-text-light);
+}
+
+.v-swatches .is-selected .item__label {
+  color: var(--color-text);
+}
+
+.v-swatches .item:hover .item__label {
+  color: var(--color-text);
+}
