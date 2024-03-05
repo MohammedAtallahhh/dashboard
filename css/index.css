@@ -141,12 +141,12 @@ body {
   margin: auto;
 }
 
-main {
+/* main {
   max-width: 1240px;
   padding: 120px 40px;
   margin: auto;
   gap: 48px;
-}
+} */
 
 section .section-title {
   margin-bottom: 24px;

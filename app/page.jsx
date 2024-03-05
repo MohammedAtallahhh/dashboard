@@ -1,6 +1,6 @@
-import * as d3 from "d3";
+import FedLiquidityVsSP500 from "@/components/FedLiquidityVsSP500";
+import FedLiquidityOscillatorVsSP500 from "@/components/FedLiquidityOscillatorVsSP500";
 
-import Chart from "@/components/chart";
 import { fetchAndProcessUsLiquidityData } from "@/lib/fetchUsLiquidityData";
 
 export default async function Home() {
@@ -20,8 +20,12 @@ export default async function Home() {
   };
 
   return (
-    <section className="m-10">
-      <Chart data={data} color={color} />
-    </section>
+    <main>
+      <section className="m-10">
+        <h2 className="section-title">Net liquidity</h2>
+        <FedLiquidityVsSP500 data={data} color={color} />
+        <FedLiquidityOscillatorVsSP500 data={data} color={color} />
+      </section>
+    </main>
   );
 }

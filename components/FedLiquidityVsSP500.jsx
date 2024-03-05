@@ -1,10 +1,10 @@
 "use client";
-import React, { useRef } from "react";
+
 import * as d3 from "d3";
 
 import LineChart from "./LineChart/LineChart";
 
-const Chart = ({ color, data }) => {
+const FedLiquidityVsSP500 = ({ color, data }) => {
   const { netLiquidityData, sp500Data, btcData } = data;
 
   return (
@@ -68,4 +68,4 @@ const Chart = ({ color, data }) => {
   );
 };
 
-export default Chart;
+export default FedLiquidityVsSP500;

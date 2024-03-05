@@ -204,21 +204,6 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       .attr("class", "handle--custom")
       .attr("d", brushResizePath);
 
-    const swatchesContainer = d3
-      .select(swatchRef.current)
-      .on("change", (event) => {
-        console.log({ event });
-        // setSelectedSeries()
-      });
-
-    // console.log({ swatchesContainer });
-
-    // new VSwatches({
-    //   el: swatchesContainer.node(),
-    //   series: data.series,
-    //   selected: selectedSeries,
-    // });
-
     if (footnotes) {
       container
         .append("div")
@@ -245,6 +230,8 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       contextYAxisG,
       contextSeriesG,
       activeG,
+      focusPeripheralsG,
+      clipId,
     }));
   }
 
@@ -462,14 +449,14 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
 
   function renderPeripherals(boundedWidth) {
     if (peripherals.highlightedAreas) {
-      focusPeripheralsG
+      chartState.focusPeripheralsG
         .selectAll(".highlighted-area-rect")
         .data(peripherals.highlightedAreas)
         .join((enter) =>
           enter
             .append("rect")
             .attr("class", "highlighted-area-rect")
-            .attr("clip-path", `url(#${clipId})`)
+            .attr("clip-path", `url(#${chartState.clipId})`)
             .attr("fill", (d) => d.color)
         )
         .attr("x", (d) =>
