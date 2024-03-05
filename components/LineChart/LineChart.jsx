@@ -130,12 +130,6 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
 
     container.append("div").attr("class", "chart-title").text(title);
 
-    // new VExport({
-    //   el: container.append("div").node(),
-    //   data: data,
-    //   title: title,
-    // });
-
     const focusSvg = container.append("svg").attr("class", "focus-svg");
 
     const clipId = `${id}-clip`;
@@ -823,8 +817,6 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       let w = chartState.container.node().clientWidth;
       let bw = w - dimensions.marginLeft - dimensions.marginRight;
 
-      // console.log({ w, bw, width, boundedWidth });
-      // console.log(chartState.selectedDateExtent);
       stackData();
       wrangle(chartState.selectedDateExtent);
       render(w, bw);

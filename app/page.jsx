@@ -1,5 +1,7 @@
 import FedLiquidityVsSP500 from "@/components/FedLiquidityVsSP500";
 import FedLiquidityOscillatorVsSP500 from "@/components/FedLiquidityOscillatorVsSP500";
+import OneMonthChange from "@/components/OneMonthChange";
+import ThreeMonthChange from "@/components/ThreeMonthChange";
 
 import { fetchAndProcessUsLiquidityData } from "@/lib/fetchUsLiquidityData";
 
@@ -20,11 +22,18 @@ export default async function Home() {
   };
 
   return (
-    <main>
-      <section className="m-10">
+    <main className="flex flex-col gap-20 w-[90%] max-w-[1200px] mx-auto pt-24 pb-5">
+      <section>
         <h2 className="section-title">Net liquidity</h2>
         <FedLiquidityVsSP500 data={data} color={color} />
+
         <FedLiquidityOscillatorVsSP500 data={data} color={color} />
+      </section>
+
+      <section>
+        <h2 className="section-title">Bank Reserves</h2>
+        <OneMonthChange data={data} color={color} />
+        <ThreeMonthChange data={data} color={color} />
       </section>
     </main>
   );

@@ -124,9 +124,9 @@ body {
 }
 
 /* Layout */
-#financial-header {
+#header {
   position: fixed;
-  top: 110px;
+  top: 0;
   left: 0;
   width: 100%;
   z-index: 2;
@@ -135,17 +135,20 @@ body {
     inset 0 -1px 0 rgba(255, 255, 255, 0.15);
 }
 
-#financial-header > nav {
+#header > nav {
   max-width: 1240px;
   padding: 24px 40px;
   margin: auto;
 }
 
 /* main {
+  width: 90%;
   max-width: 1240px;
-  padding: 120px 40px;
-  margin: auto;
-  gap: 48px;
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
 } */
 
 section .section-title {
@@ -158,7 +161,7 @@ section article + article {
 
 @media screen and (min-width: 921px) {
   section article + article {
-    margin-top: 96px;
+    margin-top: 60px;
   }
 }
 
