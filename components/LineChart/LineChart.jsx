@@ -3,7 +3,6 @@ import * as d3 from "d3";
 
 import Tooltip from "./Tooltip";
 import Swatches from "./Swatches";
-import CVSButton from "./CSVButton";
 import CSVButton from "./CSVButton";
 
 const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
@@ -14,6 +13,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   const [scaffoldComplete, setScaffoldComplete] = useState(false);
   const [tooltipShown, setTooltipShown] = useState(false);
   const [selectedSeries, setSelectedSeries] = useState(new Set());
+  const [loading, setLoading] = useState(true);
 
   const [dimensions, setDimensions] = useState({
     axisWidth: 80,
@@ -300,33 +300,6 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     }
   }
 
-  // function stackData() {
-  //   const stackSeries = data.series.filter(
-  //     (d) => d.type === "stackedArea" && selectedSeries.has(d.label)
-  //   );
-
-  //   if (stackSeries.length === 0) return;
-
-  //   const stackKeys = stackSeries.map((d) => d.label);
-
-  //   const stackData = d3
-  //     .stack()
-  //     .keys(stackKeys)
-  //     .order(d3.stackOrderNone)
-  //     .offset(d3.stackOffsetDiverging)(
-  //     d3.zip(...stackSeries.map((d) => d.values)).map((values) =>
-  //       values.reduce((d, v, i) => {
-  //         d[stackKeys[i]] = v;
-  //         return d;
-  //       }, {})
-  //     )
-  //   );
-
-  //   stackSeries.forEach((d, i) => {
-  //     d.stackedValues = stackData[i];
-  //   });
-  // }
-
   function brushResizePath(d) {
     const e = +(d.type == "e"),
       x = e ? 1 : -1,
@@ -432,6 +405,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   function render(width, boundedWidth) {
     renderFocus(width, boundedWidth);
     renderContext(width, boundedWidth);
+    setLoading(false);
   }
 
   function renderFocus(width, boundedWidth) {
@@ -787,9 +761,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
 
   useEffect(() => {
     if (scaffoldComplete) {
-      // stackData();
       wrangle(chartState.selectedDateExtent);
-
       const brush = d3
         .brushX()
         .on("start", brushStarted)
@@ -824,7 +796,21 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   }, [selectedSeries]);
 
   return (
-    <article id={id} className="relative overflow-hidden">
+    <article id={id} className="relative overflow-hidden min-h-[600px]">
+      <div
+        className={`absolute inset-0 z-10 bg-inherit flex items-center justify-center ${
+          loading ? "" : "hidden"
+        }`}
+      >
+        <div
+          className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-gray-400 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
+          role="status"
+        >
+          <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+            Loading...
+          </span>
+        </div>
+      </div>
       <div ref={chartRef} className="line-area-chart chart-container">
         {/* CSV Button */}
         <CSVButton data={data} title={title} />

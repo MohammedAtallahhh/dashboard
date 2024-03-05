@@ -22,7 +22,7 @@ const links = [
 const Header = () => {
   const pathname = usePathname();
   return (
-    <header id="header">
+    <header id="header" className="z-50">
       <nav>
         {links.map(({ path, name }) => (
           <Link

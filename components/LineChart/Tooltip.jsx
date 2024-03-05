@@ -6,7 +6,7 @@ const Tooltip = ({ data, selectedSeries, iActive }) => {
 
   return (
     <>
-      <div className="sub-label">${date}</div>
+      <div className="sub-label">{date}</div>
       {data.series
         .filter(
           (d) =>
@@ -21,7 +21,7 @@ const Tooltip = ({ data, selectedSeries, iActive }) => {
               style={{ backgroundColor: `${d.color}` }}
             ></span>
             &nbsp;
-            <span className="sub-label">{d.label}</span>
+            <span className="sub-label">{d.label}</span>{" "}
             <span className="data-label">{d.format(d.values[iActive])}</span>
           </div>
         ))}
