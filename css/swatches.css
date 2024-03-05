@@ -3,7 +3,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 4px 20px;
-  grid-row: 4;
+  grid-row: 5;
 }
 
 .v-swatches .item {

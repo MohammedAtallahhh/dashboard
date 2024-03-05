@@ -300,32 +300,32 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     }
   }
 
-  function stackData() {
-    const stackSeries = data.series.filter(
-      (d) => d.type === "stackedArea" && selectedSeries.has(d.label)
-    );
+  // function stackData() {
+  //   const stackSeries = data.series.filter(
+  //     (d) => d.type === "stackedArea" && selectedSeries.has(d.label)
+  //   );
 
-    if (stackSeries.length === 0) return;
+  //   if (stackSeries.length === 0) return;
 
-    const stackKeys = stackSeries.map((d) => d.label);
+  //   const stackKeys = stackSeries.map((d) => d.label);
 
-    const stackData = d3
-      .stack()
-      .keys(stackKeys)
-      .order(d3.stackOrderNone)
-      .offset(d3.stackOffsetDiverging)(
-      d3.zip(...stackSeries.map((d) => d.values)).map((values) =>
-        values.reduce((d, v, i) => {
-          d[stackKeys[i]] = v;
-          return d;
-        }, {})
-      )
-    );
+  //   const stackData = d3
+  //     .stack()
+  //     .keys(stackKeys)
+  //     .order(d3.stackOrderNone)
+  //     .offset(d3.stackOffsetDiverging)(
+  //     d3.zip(...stackSeries.map((d) => d.values)).map((values) =>
+  //       values.reduce((d, v, i) => {
+  //         d[stackKeys[i]] = v;
+  //         return d;
+  //       }, {})
+  //     )
+  //   );
 
-    stackSeries.forEach((d, i) => {
-      d.stackedValues = stackData[i];
-    });
-  }
+  //   stackSeries.forEach((d, i) => {
+  //     d.stackedValues = stackData[i];
+  //   });
+  // }
 
   function brushResizePath(d) {
     const e = +(d.type == "e"),
@@ -787,7 +787,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
 
   useEffect(() => {
     if (scaffoldComplete) {
-      stackData();
+      // stackData();
       wrangle(chartState.selectedDateExtent);
 
       const brush = d3
@@ -817,7 +817,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       let w = chartState.container.node().clientWidth;
       let bw = w - dimensions.marginLeft - dimensions.marginRight;
 
-      stackData();
+      // stackData();
       wrangle(chartState.selectedDateExtent);
       render(w, bw);
     }

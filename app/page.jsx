@@ -1,7 +1,20 @@
-import FedLiquidityVsSP500 from "@/components/FedLiquidityVsSP500";
-import FedLiquidityOscillatorVsSP500 from "@/components/FedLiquidityOscillatorVsSP500";
-import OneMonthChange from "@/components/OneMonthChange";
-import ThreeMonthChange from "@/components/ThreeMonthChange";
+import dynamic from "next/dynamic";
+
+// import FedLiquidityVsSP500 from "@/components/FedLiquidityVsSP500";
+// import FedLiquidityOscillatorVsSP500 from "@/components/FedLiquidityOscillatorVsSP500";
+// import OneMonthChange from "@/components/OneMonthChange";
+// import ThreeMonthChange from "@/components/ThreeMonthChange";
+
+const FedLiquidityVsSP500 = dynamic(() =>
+  import("@/components/FedLiquidityVsSP500")
+);
+const FedLiquidityOscillatorVsSP500 = dynamic(() =>
+  import("@/components/FedLiquidityOscillatorVsSP500")
+);
+const OneMonthChange = dynamic(() => import("@/components/OneMonthChange"));
+const ThreeMonthChange = dynamic(() => import("@/components/ThreeMonthChange"));
+const SixMonthChange = dynamic(() => import("@/components/SixMonthChange"));
+const OtherDeposit = dynamic(() => import("@/components/OtherDeposit"));
 
 import { fetchAndProcessUsLiquidityData } from "@/lib/fetchUsLiquidityData";
 
@@ -34,6 +47,8 @@ export default async function Home() {
         <h2 className="section-title">Bank Reserves</h2>
         <OneMonthChange data={data} color={color} />
         <ThreeMonthChange data={data} color={color} />
+        <SixMonthChange data={data} color={color} />
+        <OtherDeposit data={data} color={color} />
       </section>
     </main>
   );
