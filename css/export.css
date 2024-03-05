@@ -1,8 +1,9 @@
-.v-export {
+.export {
   display: flex;
+  grid-row: 2;
 }
 
-.v-export button {
+.export button {
   -webkit-appearance: button;
   appearance: button;
   display: inline-block;
@@ -25,8 +26,8 @@
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
-.v-export button:hover,
-.v-export button:active {
+.export button:hover,
+.export button:active {
   color: var(--color-background);
   background-color: var(--color-text);
 }

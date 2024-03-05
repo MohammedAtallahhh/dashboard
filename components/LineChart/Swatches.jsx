@@ -1,68 +1,43 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
 import * as d3 from "d3";
 
-const Swatches = ({ series, selectedSeries }) => {
-  const [selected, setSelected] = useState(selectedSeries);
-  const containerRef = useRef();
+const Swatches = ({ series, selectedSeries, setSelectedSeries }) => {
+  const toggleSelected = (label) => {
+    let newSelected = new Set([...selectedSeries]);
 
-  console.log({ selected, selectedSeries });
-
-  function render() {
-    const container = d3.select(containerRef.current);
-
-    const item = container
-      .selectAll(".item")
-      .data(series, (d) => d.label)
-      .join((enter) =>
-        enter
-          .append("div")
-          .attr("class", "item")
-          .classed("is-selected", (d) => {
-            console.log({ selected, d });
-            selected.has(d.label);
-          })
-          .call((div) =>
-            div
-              .append("div")
-              .attr("class", "item__swatch")
-              .style("color", (d) => d.color)
-          )
-          .call((div) =>
-            div
-              .append("div")
-              .attr("class", "item__label legend-label")
-              .text((d) => d.label)
-          )
-          .on("click", (event, d) => clicked(event, d, container, item))
-      );
-  }
-
-  function clicked(event, d, container, item) {
-    toggleSelected(d);
-    item.classed("is-selected", (d) => selected.has(d.label));
-
-    container.dispatch("change", {
-      detail: selected,
-      bubbles: true,
-    });
-  }
-
-  function toggleSelected(d) {
-    if (selected.has(d.label)) {
-      selected.delete(d.label);
-      if (selected.size === 0) {
-        setSelected(new Set(series.map((d) => d.label)));
+    if (newSelected.has(label)) {
+      newSelected.delete(label);
+      if (newSelected.size === 0) {
+        console.log("here");
+        console.log({ series });
+        newSelected = new Set([...series.map((d) => d.label)]);
+        console.log({ newSelected });
       }
     } else {
-      setSelected(new Set([...selected, d.label]));
+      newSelected.add(label);
     }
-  }
 
-  useEffect(() => {
-    render();
-  }, [selected]);
+    setSelectedSeries(newSelected);
+  };
 
-  return <div ref={containerRef} className="v-swatches row="></div>;
+  useEffect(() => {}, [selectedSeries]);
+
+  return (
+    <div className="v-swatches">
+      {series.map((item) => (
+        <div
+          key={item.label}
+          className={`item ${
+            selectedSeries.has(item.label) ? "is-selected" : ""
+          }`}
+          onClick={() => toggleSelected(item.label)}
+        >
+          <div className="item__swatch" style={{ color: item.color }}></div>
+          <div className="item__label legend-label">{item.label}</div>
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export default Swatches;

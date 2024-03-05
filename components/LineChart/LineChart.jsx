@@ -3,10 +3,13 @@ import * as d3 from "d3";
 
 import Tooltip from "./Tooltip";
 import Swatches from "./Swatches";
+import CVSButton from "./CSVButton";
+import CSVButton from "./CSVButton";
 
 const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   const chartRef = useRef(null);
   const tooltipRef = useRef(null);
+  const swatchRef = useRef(null);
   const [setupComplete, setSetupComplete] = useState(false);
   const [scaffoldComplete, setScaffoldComplete] = useState(false);
   const [tooltipShown, setTooltipShown] = useState(false);
@@ -201,12 +204,14 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       .attr("class", "handle--custom")
       .attr("d", brushResizePath);
 
-    // const swatchesContainer = container
-    //   .select(".v-swatch")
-    //   .on("change", (event) => {
-    //     console.log({ event });
-    //     setChartState((prev) => ({ ...prev, selectedSeries: event.detail }));
-    //   });
+    const swatchesContainer = d3
+      .select(swatchRef.current)
+      .on("change", (event) => {
+        console.log({ event });
+        // setSelectedSeries()
+      });
+
+    // console.log({ swatchesContainer });
 
     // new VSwatches({
     //   el: swatchesContainer.node(),
@@ -826,14 +831,34 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     }
   }, [scaffoldComplete]);
 
+  useEffect(() => {
+    if (scaffoldComplete) {
+      let w = chartState.container.node().clientWidth;
+      let bw = w - dimensions.marginLeft - dimensions.marginRight;
+
+      // console.log({ w, bw, width, boundedWidth });
+      // console.log(chartState.selectedDateExtent);
+      stackData();
+      wrangle(chartState.selectedDateExtent);
+      render(w, bw);
+    }
+  }, [selectedSeries]);
+
   return (
     <article id={id} className="relative overflow-hidden">
       <div ref={chartRef} className="line-area-chart chart-container">
+        {/* CSV Button */}
+        <CSVButton data={data} title={title} />
+
         {/* Swatches */}
-        <div>
-          {/* {scaffoldComplete && (
-            <Swatches series={data.series} selectedSeries={selectedSeries} />
-          )} */}
+        <div ref={swatchRef} style={{ gridRow: 4 }}>
+          {scaffoldComplete && (
+            <Swatches
+              series={data.series}
+              selectedSeries={selectedSeries}
+              setSelectedSeries={setSelectedSeries}
+            />
+          )}
         </div>
 
         {/* Tooltip */}

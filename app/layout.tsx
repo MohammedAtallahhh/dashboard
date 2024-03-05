@@ -6,6 +6,7 @@ import "@/css/index.css";
 import "@/css/line-area-chart.css";
 import "@/css/tooltip.css";
 import "@/css/swatches.css";
+import "@/css/export.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
