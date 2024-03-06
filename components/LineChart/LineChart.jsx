@@ -372,6 +372,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       brushG,
       selectedDateExtent,
     } = chartState;
+
     if (
       container.node().clientWidth === 0 ||
       container.node().clientWidth === width

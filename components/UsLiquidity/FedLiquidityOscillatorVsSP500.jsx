@@ -2,7 +2,7 @@
 
 import * as d3 from "d3";
 
-import LineChart from "./LineChart/LineChart";
+import LineChart from "../LineChart/LineChart";
 
 const FedLiquidityOscillatorVsSP500 = ({ color, data }) => {
   const { netLiquiditySP500DivergenceData, sp500Data } = data;

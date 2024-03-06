@@ -2,7 +2,7 @@
 
 import * as d3 from "d3";
 
-import LineChart from "./LineChart/LineChart";
+import LineChart from "../LineChart/LineChart";
 
 const OneMonthChange = ({ color, data }) => {
   const { bankReservesData, sp500Data, btcData } = data;
@@ -10,32 +10,32 @@ const OneMonthChange = ({ color, data }) => {
   return (
     <LineChart
       {...{
-        id: "one-month-change",
+        id: "3-month-change",
         title:
-          "% 1-Month Change in SP500 vs. Bank Reserves vs. BTC Price - Compared Against SP500 Price and BTC Price",
+          "% 3-Month Change in SP500 vs. Bank Reserves vs. BTC Price - Compared Against SP500 Price and BTC Price",
         data: {
           series: [
             {
               type: "line",
               color: color.lineArea.lines[0],
-              label: "SP500 (MoM%)",
-              values: sp500Data.map((d) => d.mom),
+              label: "SP500 (QoQ%)",
+              values: sp500Data.map((d) => d["3mom"]),
               format: d3.format(",.1%"),
               axisIndex: 0,
             },
             {
               type: "line",
               color: color.lineArea.lines[1],
-              label: "Bank Reserves (MoM%)",
-              values: bankReservesData.map((d) => d.mom),
+              label: "Bank Reserves (QoQ%)",
+              values: bankReservesData.map((d) => d["3mom"]),
               format: d3.format(",.1%"),
               axisIndex: 1,
             },
             {
               type: "line",
               color: color.lineArea.lines[2],
-              label: "BTC (MoM%)",
-              values: btcData.map((d) => d.mom),
+              label: "BTC (QoQ%)",
+              values: btcData.map((d) => d["3mom"]),
               format: d3.format(",.1%"),
               axisIndex: 2,
             },
@@ -63,21 +63,21 @@ const OneMonthChange = ({ color, data }) => {
         axes: {
           y: [
             {
-              label: "SP500 (MoM%)",
+              label: "SP500 (QoQ%)",
               format: d3.format(".1~%"),
               color: color.lineArea.lines[0],
               axisSide: "left",
               alignZero: true,
             },
             {
-              label: "Bank Reserves (MoM%)",
+              label: "Bank Reserves (QoQ%)",
               format: d3.format(".1~%"),
               color: color.lineArea.lines[1],
               axisSide: "left",
               alignZero: true,
             },
             {
-              label: "BTC (MoM%)",
+              label: "BTC (QoQ%)",
               format: d3.format(".1~%"),
               color: color.lineArea.lines[2],
               axisSide: "left",
