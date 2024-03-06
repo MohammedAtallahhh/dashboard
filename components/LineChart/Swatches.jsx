@@ -1,6 +1,3 @@
-import React, { useEffect } from "react";
-import * as d3 from "d3";
-
 const Swatches = ({ series, selectedSeries, setSelectedSeries }) => {
   const toggleSelected = (label) => {
     let newSelected = new Set([...selectedSeries]);
@@ -19,8 +16,6 @@ const Swatches = ({ series, selectedSeries, setSelectedSeries }) => {
 
     setSelectedSeries(newSelected);
   };
-
-  useEffect(() => {}, [selectedSeries]);
 
   return (
     <div className="v-swatches">

@@ -9,11 +9,14 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   const chartRef = useRef(null);
   const tooltipRef = useRef(null);
   const swatchRef = useRef(null);
+
+  const [loading, setLoading] = useState(true);
   const [setupComplete, setSetupComplete] = useState(false);
   const [scaffoldComplete, setScaffoldComplete] = useState(false);
   const [tooltipShown, setTooltipShown] = useState(false);
+
   const [selectedSeries, setSelectedSeries] = useState(new Set());
-  const [loading, setLoading] = useState(true);
+  const selectedSeriesRef = useRef(selectedSeries);
 
   const [dimensions, setDimensions] = useState({
     axisWidth: 80,
@@ -28,9 +31,6 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     boundedContextHeight: 0,
     brushHandleHeight: 0,
   });
-
-  const [width, setWidth] = useState(0);
-  const [boundedWidth, setBoundedWidth] = useState(0);
 
   const [chartState, setChartState] = useState({
     focusX: null,
@@ -123,6 +123,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     }));
 
     setSelectedSeries(selectedSeries);
+    selectedSeriesRef.current = selectedSeries;
   }
 
   function scaffold() {
@@ -373,50 +374,43 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       selectedDateExtent,
     } = chartState;
 
-    if (
-      container.node().clientWidth === 0 ||
-      container.node().clientWidth === width
-    )
-      return;
+    let width = container.node().clientWidth;
 
-    let w = container.node().clientWidth;
-    let boundedWidth = w - marginLeft - marginRight;
-
-    setWidth(w);
-    setBoundedWidth(boundedWidth);
-
-    focusX.range([marginLeft, w - marginRight]);
-    contextX.range([marginLeft, w - marginRight]);
+    focusX.range([marginLeft, width - marginRight]);
+    contextX.range([marginLeft, width - marginRight]);
 
     brush.extent([
       [marginLeft, marginTop + 0.5],
-      [w - marginRight, contextHeight - marginBottom + 0.5],
+      [width - marginRight, contextHeight - marginBottom + 0.5],
     ]);
 
-    focusSvg.attr("viewBox", [0, 0, w, focusHeight]);
-    clipRect.attr("width", w - marginLeft - marginRight);
-    captureRect.attr("width", w - marginLeft - marginRight);
+    focusSvg.attr("viewBox", [0, 0, width, focusHeight]);
+    clipRect.attr("width", width - marginLeft - marginRight);
+    captureRect.attr("width", width - marginLeft - marginRight);
     brushG.call(brush).call(brush.move, selectedDateExtent.map(contextX));
 
-    contextSvg.attr("viewBox", [0, 0, w, contextHeight]);
+    contextSvg.attr("viewBox", [0, 0, width, contextHeight]);
 
-    render(w, boundedWidth);
+    render();
   }
 
-  function render(width, boundedWidth) {
-    renderFocus(width, boundedWidth);
-    renderContext(width, boundedWidth);
+  function render() {
+    renderFocus();
+    renderContext();
     setLoading(false);
   }
 
-  function renderFocus(width, boundedWidth) {
-    if (peripherals) renderPeripherals(boundedWidth);
-    renderFocusXAxis(boundedWidth);
-    renderFocusYAxes(width);
+  function renderFocus() {
+    if (peripherals) renderPeripherals();
+    renderFocusXAxis();
+    renderFocusYAxes();
     renderFocusSeries();
   }
 
-  function renderPeripherals(boundedWidth) {
+  function renderPeripherals() {
+    let width = chartState.container.node().clientWidth;
+    let boundedWidth = width - dimensions.marginLeft - dimensions.marginRight;
+
     if (peripherals.highlightedAreas) {
       chartState.focusPeripheralsG
         .selectAll(".highlighted-area-rect")
@@ -450,7 +444,9 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     }
   }
 
-  function renderFocusXAxis(boundedWidth) {
+  function renderFocusXAxis() {
+    let width = chartState.container.node().clientWidth;
+    let boundedWidth = width - dimensions.marginLeft - dimensions.marginRight;
     const { focusHeight, marginBottom } = dimensions;
     const { focusX, focusXAxisG } = chartState;
 
@@ -464,8 +460,9 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       );
   }
 
-  function renderFocusYAxes(width) {
-    if (!width) return;
+  function renderFocusYAxes() {
+    let width = chartState.container.node().clientWidth;
+
     const {
       axisOffset,
       marginLeft,
@@ -526,9 +523,13 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
 
   function renderFocusSeries() {
     const { focusSeriesG, pathGenerators, focusX, focusYs } = chartState;
+
     focusSeriesG
       .selectAll("path")
-      .data(data.series, (d) => d.label)
+      .data(
+        data.series.filter((s) => selectedSeriesRef.current.has(s.label)),
+        (d) => d.label
+      )
       .join((enter) =>
         enter
           .append("path")
@@ -551,13 +552,16 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       );
   }
 
-  function renderContext(width, boundedWidth) {
-    renderContextXAxis(boundedWidth);
-    renderContextYAxes(width);
+  function renderContext() {
+    renderContextXAxis();
+    renderContextYAxes();
     renderContextSeries();
   }
 
-  function renderContextXAxis(boundedWidth) {
+  function renderContextXAxis() {
+    let width = chartState.container.node().clientWidth;
+    let boundedWidth = width - dimensions.marginLeft - dimensions.marginRight;
+
     const { contextHeight, marginBottom } = dimensions;
     const { contextXAxisG, contextX } = chartState;
     contextXAxisG
@@ -570,9 +574,10 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       );
   }
 
-  function renderContextYAxes(width) {
+  function renderContextYAxes() {
     const { contextYAxisG, contextYs } = chartState;
     const { axisOffset, axisWidth, marginLeft, marginRight } = dimensions;
+    let width = chartState.container.node().clientWidth;
 
     contextYAxisG
       .attr("display", (d, i) =>
@@ -615,7 +620,9 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       .each(function (d) {
         if (d.type !== "line") d3.select(this).lower();
       })
-      .attr("display", (d) => (selectedSeries.has(d.label) ? null : "none"))
+      .attr("display", (d) =>
+        selectedSeriesRef.current.has(d.label) ? null : "none"
+      )
       .attr("d", (d, i) =>
         pathGenerators[i](
           contextX,
@@ -645,7 +652,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     setChartState((prevState) => ({ ...prevState, selectedDateExtent: sde }));
 
     wrangle(sde);
-    renderFocus(w, boundedWidth);
+    renderFocus();
   }
 
   function brushEnded() {
@@ -665,12 +672,9 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       let iActive = i;
       renderActive(iActive);
 
-      // chartState.tooltip.show(tooltipHtml(iActive));
-      // d3.select(chartState.container).node().classed("v-tooltip-bounds", true);
       setChartState((prev) => ({ ...prev, iActive }));
       setTooltipShown(true);
     }
-    // chartState.tooltip.move(chartState.focusX(xDate), ym);
 
     moveTooltip(chartState.focusX(xDate), ym);
   }
@@ -763,6 +767,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   useEffect(() => {
     if (scaffoldComplete) {
       wrangle(chartState.selectedDateExtent);
+
       const brush = d3
         .brushX()
         .on("start", brushStarted)
@@ -787,12 +792,10 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
 
   useEffect(() => {
     if (scaffoldComplete) {
-      let w = chartState.container.node().clientWidth;
-      let bw = w - dimensions.marginLeft - dimensions.marginRight;
+      selectedSeriesRef.current = selectedSeries;
 
-      // stackData();
       wrangle(chartState.selectedDateExtent);
-      render(w, bw);
+      render();
     }
   }, [selectedSeries]);
 
