@@ -4,9 +4,13 @@ import * as d3 from "d3";
 import Tooltip from "./Tooltip";
 import Swatches from "./Swatches";
 import CSVButton from "./CSVButton";
+import Camera from "@/components/icons/Camera";
+import html2canvas from "html2canvas";
 
 const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
+  const parentRef = useRef(null);
   const chartRef = useRef(null);
+  const actionRef = useRef(null);
   const tooltipRef = useRef(null);
   const swatchRef = useRef(null);
 
@@ -638,9 +642,6 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   function brushed({ selection }) {
     let { contextX, brushHandle } = chartState;
 
-    let w = chartState.container.node().clientWidth;
-    let boundedWidth = w - dimensions.marginLeft - dimensions.marginRight;
-
     if (!selection) return;
 
     let sde = selection.map(contextX.invert, contextX).map(d3.utcDay.round);
@@ -752,6 +753,41 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     tooltipRef.current.style.transform = `translate(${x}px, ${y}px)`;
   };
 
+  function watermarkedDataURL(canvas, text) {
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d");
+    let cw, ch;
+
+    cw = tempCanvas.width = canvas.width;
+    ch = tempCanvas.height = canvas.height;
+
+    tempCtx.drawImage(canvas, 0, 0);
+    tempCtx.font = "24px verdana";
+
+    const textWidth = tempCtx.measureText(text).width;
+    tempCtx.globalAlpha = 0.5;
+    tempCtx.fillStyle = "white";
+
+    tempCtx.fillText(text, cw - textWidth - 10, ch - 20);
+    tempCtx.fillStyle = "black";
+    tempCtx.fillText(text, cw - textWidth - 10 + 2, ch - 20 + 2);
+
+    return tempCanvas.toDataURL();
+  }
+  const downloadImage = () => {
+    html2canvas(parentRef.current, {
+      backgroundColor: "#1b1b1e",
+      ignoreElements: (el) => el.classList.contains("ignore-me"),
+    }).then((canvas) => {
+      const imgData = watermarkedDataURL(canvas, "WATERMARK");
+      const link = document.createElement("a");
+
+      link.href = imgData;
+      link.download = `${title}-screenshot.png`;
+      link.click();
+    });
+  };
+
   useEffect(() => {
     setup();
     setSetupComplete(true);
@@ -800,7 +836,11 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   }, [selectedSeries]);
 
   return (
-    <article id={id} className="relative overflow-hidden min-h-[600px]">
+    <article
+      ref={parentRef}
+      id={id}
+      className="relative overflow-hidden min-h-[600px]"
+    >
       <div
         className={`absolute inset-0 z-10 bg-inherit flex items-center justify-center ${
           loading ? "" : "hidden"
@@ -817,10 +857,26 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       </div>
       <div ref={chartRef} className="line-area-chart chart-container">
         {/* CSV Button */}
-        <CSVButton data={data} title={title} />
+        <div
+          ref={actionRef}
+          className="flex justify-between items-center pb-5 ignore-me"
+          style={{ gridRow: 2 }}
+        >
+          <CSVButton data={data} title={title} />
+
+          <button
+            onClick={downloadImage}
+            className="flex items-center gap-1 bg-[#101015] border-[#f7f7f7] border rounded-md p-2 py-1 text-xs font-semibold hover:bg-gray-800"
+          >
+            <div className="w-5">
+              <Camera />
+            </div>
+            Screenshot
+          </button>
+        </div>
 
         {/* Swatches */}
-        <div ref={swatchRef} style={{ gridRow: 4 }}>
+        <div ref={swatchRef} style={{ gridRow: 5 }}>
           {scaffoldComplete && (
             <Swatches
               series={data.series}

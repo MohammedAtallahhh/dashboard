@@ -31,15 +31,15 @@ export default async function Home() {
         <h2 className="section-title">Net liquidity</h2>
         <FedLiquidityVsSP500 data={data} color={colors} />
 
-        {/* <FedLiquidityOscillatorVsSP500 data={data} color={colors} /> */}
+        <FedLiquidityOscillatorVsSP500 data={data} color={colors} />
       </section>
 
       <section>
         <h2 className="section-title">Bank Reserves</h2>
-        {/* <OneMonthChange data={data} color={colors} />
+        <OneMonthChange data={data} color={colors} />
         <ThreeMonthChange data={data} color={colors} />
         <SixMonthChange data={data} color={colors} />
-        <OtherDeposit data={data} color={colors} /> */}
+        <OtherDeposit data={data} color={colors} />
       </section>
     </main>
   );
