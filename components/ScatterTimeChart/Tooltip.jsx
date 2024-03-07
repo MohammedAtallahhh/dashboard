@@ -1,7 +1,13 @@
 import React from "react";
+import { utcFormat } from "d3";
 
-const Tooltip = ({ hasR, title, data, filteredData, iActive }) => {
+const Tooltip = ({ hasR, hasBrush, data, filteredData, iActive }) => {
   const [x, y, color, dateOrKey, r] = filteredData[iActive];
+
+  let title = dateOrKey;
+  if (hasBrush) {
+    title = utcFormat("%B %-d, %Y")(dateOrKey);
+  }
 
   return (
     <div>

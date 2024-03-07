@@ -28,7 +28,7 @@ const GlobalLiquidityPage = async () => {
       <section>
         <h2 className="section-title">Central Bank Assets</h2>
         <GlobalCentralBankAssets data={data} color={colors} />
-        {/* <SP500VSCentralBank data={data} color={colors} /> */}
+        <SP500VSCentralBank data={data} color={colors} />
         <GCBAVSSP500 data={data} color={colors} />
       </section>
     </main>

@@ -17,6 +17,7 @@ const ScatterTimeChart = ({
 }) => {
   const parentRef = useRef(null);
   const chartRef = useRef(null);
+  const chartSvgRef = useRef(null);
   const actionRef = useRef(null);
   const tooltipRef = useRef(null);
 
@@ -148,7 +149,7 @@ const ScatterTimeChart = ({
 
     const svgWrapper = container.append("div");
 
-    const svg = svgWrapper.append("svg").attr("class", "chart-svg");
+    const svg = d3.select(chartSvgRef.current);
 
     const xAxisG = svg.append("g").attr("class", "axis axis--x axis-label");
 
@@ -170,12 +171,7 @@ const ScatterTimeChart = ({
     activeG.append("circle").attr("class", "active-circle__bg");
     activeG.append("circle").attr("class", "active-circle__fg");
 
-    const captureRect = svg
-      .append("rect")
-      .attr("class", "capture-rect")
-      .attr("x", marginLeft)
-      .attr("y", 0)
-      .attr("height", height);
+    const captureRect = d3.select(chartSvgRef.current).select(".capture-rect");
 
     if (hasBrush) {
       contextSvg = container.append("svg").attr("class", "context-svg");
@@ -293,7 +289,6 @@ const ScatterTimeChart = ({
       selectedDateExtent,
     } = chartState;
 
-    console.log({ filteredData });
     const w = container.node().clientWidth;
     // const boundedWidth = w - marginLeft - marginRight;
 
@@ -331,10 +326,10 @@ const ScatterTimeChart = ({
     setLoading(false);
   }
 
-  function renderFocus() {
+  function renderFocus(sde) {
     renderXAxis();
     renderYAxis();
-    renderDots();
+    renderDots(sde);
     renderRegression();
   }
 
@@ -401,8 +396,10 @@ const ScatterTimeChart = ({
       );
   }
 
-  function renderDots() {
+  function renderDots(sde) {
     const { dotsG, hasR, x, y } = chartState;
+
+    const filteredData = filterData(sde ?? chartState.selectedDateExtent);
 
     dotsG
       .selectAll(".dot")
@@ -520,9 +517,6 @@ const ScatterTimeChart = ({
       (_, i) => `translate(${selection[i]},${dimensions.contextMarginTop})`
     );
 
-    const filteredData = filterData(sde);
-    console.log({ filteredData });
-
     wrangle(sde);
     renderFocus(sde);
   }
@@ -532,7 +526,6 @@ const ScatterTimeChart = ({
   }
 
   function pointerEntered() {
-    console.log({ filteredData });
     const hasData = filteredData.length > 0;
     if (!hasData) return;
     chartState.activeG.classed("is-active", true);
@@ -544,7 +537,7 @@ const ScatterTimeChart = ({
     if (!hasData) return;
 
     const [xm, ym] = d3.pointer(event);
-    const offsetY = chartState.svgWrapper.node().offsetTop;
+    const offsetY = d3.select(tooltipRef.current).node().clientHeight;
 
     const delaunay = d3.Delaunay.from(
       filteredData,
@@ -554,11 +547,13 @@ const ScatterTimeChart = ({
 
     const i = delaunay.find(xm, ym, iActive || 0);
 
+    console.log({ offsetY }, chartState.y(filteredData[i][1]));
     if (iActive !== i) {
       setIActive(i);
       renderActive(i);
 
       setTooltipShown(true);
+
       moveTooltip(
         chartState.x(filteredData[i][0]),
         chartState.y(filteredData[i][1]) + offsetY
@@ -629,7 +624,6 @@ const ScatterTimeChart = ({
 
   useEffect(() => {
     if (wrangleComplete) {
-      console.log("here");
       let brush;
 
       if (chartState.hasBrush) {
@@ -640,11 +634,11 @@ const ScatterTimeChart = ({
           .on("end", brushEnded);
       }
 
-      chartState.captureRect
-        .on("pointerenter", pointerEntered)
-        .on("pointermove", pointerMoved)
-        .on("pointerleave", pointerLeft)
-        .on("touchstart", (event) => event.preventDefault());
+      // chartState.captureRect
+      //   .on("pointerenter", pointerEntered)
+      //   .on("pointermove", pointerMoved)
+      //   .on("pointerleave", pointerLeft)
+      //   .on("touchstart", (event) => event.preventDefault());
 
       const ro = new ResizeObserver(() => resized(brush));
       ro.observe(chartRef.current);
@@ -662,7 +656,7 @@ const ScatterTimeChart = ({
       className="relative overflow-hidden min-h-[600px]"
     >
       {/* Loader */}
-      {/* <div
+      <div
         className={`absolute inset-0 z-10 bg-inherit flex items-center justify-center ${
           loading ? "" : "hidden"
         }`}
@@ -675,9 +669,26 @@ const ScatterTimeChart = ({
             Loading...
           </span>
         </div>
-      </div> */}
+      </div>
 
       <div ref={chartRef} className="scatter-time-chart chart-container">
+        <div className="svg-wrapper" style={{ gridRow: 3 }}>
+          <svg
+            className="chart-svg"
+            ref={chartSvgRef}
+            onPointerEnter={pointerEntered}
+            onPointerMove={pointerMoved}
+            onPointerLeave={pointerLeft}
+          >
+            <rect
+              className="capture-rect"
+              x={dimensions.marginLeft}
+              y={0}
+              height={dimensions.height}
+            ></rect>
+          </svg>
+        </div>
+
         {/* CSV Button */}
         <div
           ref={actionRef}
@@ -696,7 +707,7 @@ const ScatterTimeChart = ({
           {tooltipShown ? (
             <Tooltip
               data={data}
-              title={title}
+              hasBrush={chartState.hasBrush}
               hasR={chartState.hasR}
               filteredData={filteredData}
               iActive={iActive}
