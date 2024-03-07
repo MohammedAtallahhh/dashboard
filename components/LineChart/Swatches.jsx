@@ -5,10 +5,7 @@ const Swatches = ({ series, selectedSeries, setSelectedSeries }) => {
     if (newSelected.has(label)) {
       newSelected.delete(label);
       if (newSelected.size === 0) {
-        console.log("here");
-        console.log({ series });
         newSelected = new Set([...series.map((d) => d.label)]);
-        console.log({ newSelected });
       }
     } else {
       newSelected.add(label);

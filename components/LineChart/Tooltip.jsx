@@ -1,4 +1,3 @@
-import React, { useEffect, useRef, useState } from "react";
 import { utcFormat } from "d3";
 
 const Tooltip = ({ data, selectedSeries, iActive }) => {

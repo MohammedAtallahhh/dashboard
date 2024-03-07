@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import lodash from "lodash";
 
 import Tooltip from "./Tooltip";
 import Swatches from "./Swatches";
 import CSVButton from "./CSVButton";
-import Camera from "@/components/icons/Camera";
-import html2canvas from "html2canvas";
+import ScreenshotButton from "../ScreenshotButton";
 
 const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   const parentRef = useRef(null);
@@ -496,6 +496,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       })
       .each((d, i, n) => {
         const axis = d.axisSide === "left" ? d3.axisLeft : d3.axisRight;
+
         d3.select(n[i]).call(
           axis(focusYs[i])
             .ticks(boundedFocusHeight / 50)
@@ -635,11 +636,11 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       );
   }
 
-  function brushStarted() {
+  const brushStarted = () => {
     chartState.brushG.classed("is-brushing", true);
-  }
+  };
 
-  function brushed({ selection }) {
+  const brushed = ({ selection }) => {
     let { contextX, brushHandle } = chartState;
 
     if (!selection) return;
@@ -654,17 +655,18 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
 
     wrangle(sde);
     renderFocus();
-  }
+  };
 
-  function brushEnded() {
+  const brushEnded = () => {
     chartState.brushG.classed("is-brushing", false);
-  }
+  };
 
   function pointerEntered() {
     chartState.activeG.classed("is-active", true);
+    setTooltipShown(true);
   }
 
-  function pointerMoved(event) {
+  const pointerMoved = lodash.throttle((event) => {
     const [xm, ym] = d3.pointer(event, chartState.container.node());
     const xDate = chartState.focusX.invert(xm);
     const i = d3.bisectCenter(data.dates, xDate);
@@ -674,19 +676,17 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       renderActive(iActive);
 
       setChartState((prev) => ({ ...prev, iActive }));
-      setTooltipShown(true);
     }
-
     moveTooltip(chartState.focusX(xDate), ym);
-  }
+  }, 100);
 
-  function pointerLeft() {
+  const pointerLeft = () => {
     let iActive = null;
     chartState.activeG.classed("is-active", false);
 
     setTooltipShown(false);
     setChartState((prev) => ({ ...prev, iActive }));
-  }
+  };
 
   function renderActive(iActive) {
     chartState.activeG.attr(
@@ -751,41 +751,6 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     }
 
     tooltipRef.current.style.transform = `translate(${x}px, ${y}px)`;
-  };
-
-  function watermarkedDataURL(canvas, text) {
-    const tempCanvas = document.createElement("canvas");
-    const tempCtx = tempCanvas.getContext("2d");
-    let cw, ch;
-
-    cw = tempCanvas.width = canvas.width;
-    ch = tempCanvas.height = canvas.height;
-
-    tempCtx.drawImage(canvas, 0, 0);
-    tempCtx.font = "24px verdana";
-
-    const textWidth = tempCtx.measureText(text).width;
-    tempCtx.globalAlpha = 0.5;
-    tempCtx.fillStyle = "white";
-
-    tempCtx.fillText(text, cw - textWidth - 10, ch - 20);
-    tempCtx.fillStyle = "black";
-    tempCtx.fillText(text, cw - textWidth - 10 + 2, ch - 20 + 2);
-
-    return tempCanvas.toDataURL();
-  }
-  const downloadImage = () => {
-    html2canvas(parentRef.current, {
-      backgroundColor: "#1b1b1e",
-      ignoreElements: (el) => el.classList.contains("ignore-me"),
-    }).then((canvas) => {
-      const imgData = watermarkedDataURL(canvas, "WATERMARK");
-      const link = document.createElement("a");
-
-      link.href = imgData;
-      link.download = `${title}-screenshot.png`;
-      link.click();
-    });
   };
 
   useEffect(() => {
@@ -863,16 +828,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
           style={{ gridRow: 2 }}
         >
           <CSVButton data={data} title={title} />
-
-          <button
-            onClick={downloadImage}
-            className="flex items-center gap-1 bg-[#101015] border-[#f7f7f7] border rounded-md p-2 py-1 text-xs font-semibold hover:bg-gray-800"
-          >
-            <div className="w-5">
-              <Camera />
-            </div>
-            Screenshot
-          </button>
+          <ScreenshotButton target={parentRef.current} title={title} />
         </div>
 
         {/* Swatches */}

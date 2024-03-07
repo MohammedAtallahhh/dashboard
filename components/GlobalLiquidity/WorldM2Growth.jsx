@@ -63,6 +63,7 @@ const WorldM2Growth = ({ data, color }) => {
               color: color.lineArea.neutral,
               axisSide: "left",
             },
+
             {
               label: "BTC",
               format: d3.format("$,.0f"),
