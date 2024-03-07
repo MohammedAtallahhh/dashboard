@@ -1,6 +1,6 @@
 import React from "react";
 
-import CSVIcon from "../icons/CSVIcon";
+import CSVIcon from "./icons/CSVIcon";
 import { csvFormat } from "d3";
 
 const CSVButton = ({ data, title }) => {

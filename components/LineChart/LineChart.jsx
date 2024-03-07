@@ -4,7 +4,7 @@ import lodash from "lodash";
 
 import Tooltip from "./Tooltip";
 import Swatches from "./Swatches";
-import CSVButton from "./CSVButton";
+import CSVButton from "../CSVButton";
 import ScreenshotButton from "../ScreenshotButton";
 
 const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
@@ -449,10 +449,11 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   }
 
   function renderFocusXAxis() {
-    let width = chartState.container.node().clientWidth;
-    let boundedWidth = width - dimensions.marginLeft - dimensions.marginRight;
     const { focusHeight, marginBottom } = dimensions;
     const { focusX, focusXAxisG } = chartState;
+
+    let width = chartState.container.node().clientWidth;
+    let boundedWidth = width - dimensions.marginLeft - dimensions.marginRight;
 
     focusXAxisG
       .attr("transform", `translate(0,${focusHeight - marginBottom})`)
