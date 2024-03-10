@@ -1,6 +1,6 @@
-const Swatches = ({ series, selectedSeries, setSelectedSeries }) => {
+const Swatches = ({ series, selectedSeries, setSS }) => {
   const toggleSelected = (label) => {
-    let newSelected = new Set([...selectedSeries]);
+    let newSelected = new Set([...selectedSeries.current]);
 
     if (newSelected.has(label)) {
       newSelected.delete(label);
@@ -11,7 +11,8 @@ const Swatches = ({ series, selectedSeries, setSelectedSeries }) => {
       newSelected.add(label);
     }
 
-    setSelectedSeries(newSelected);
+    selectedSeries.current = newSelected;
+    setSS(newSelected);
   };
 
   return (
@@ -20,7 +21,7 @@ const Swatches = ({ series, selectedSeries, setSelectedSeries }) => {
         <div
           key={item.label}
           className={`item ${
-            selectedSeries.has(item.label) ? "is-selected" : ""
+            selectedSeries.current.has(item.label) ? "is-selected" : ""
           }`}
           onClick={() => toggleSelected(item.label)}
         >

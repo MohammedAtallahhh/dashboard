@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import lodash from "lodash";
@@ -12,236 +13,60 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   const chartRef = useRef(null);
   const actionRef = useRef(null);
   const tooltipRef = useRef(null);
-  const swatchRef = useRef(null);
 
+  const focusRef = useRef(null);
+  const contextRef = useRef(null);
+
+  const focusX = useRef(d3.scaleUtc());
+  const focusYs = useRef();
+  const contextX = useRef(d3.scaleUtc());
+  const contextYs = useRef();
+  const selectedDateExtent = useRef([]);
+  const pathGenerators = useRef([]);
+  const selectedSeries = useRef([]);
+  const [ss, setSS] = useState([]);
+
+  const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [setupComplete, setSetupComplete] = useState(false);
-  const [scaffoldComplete, setScaffoldComplete] = useState(false);
   const [tooltipShown, setTooltipShown] = useState(false);
+  const [active, setActive] = useState(null);
 
-  const [selectedSeries, setSelectedSeries] = useState(new Set());
-  const selectedSeriesRef = useRef(selectedSeries);
+  const axisWidth = 80;
+  const axisOffset = 20;
+  const marginTop = 8;
+  const marginBottom = 24;
+  const focusHeight = 400;
+  const contextHeight = 80;
 
-  const [dimensions, setDimensions] = useState({
-    axisWidth: 80,
-    axisOffset: 20,
-    marginTop: 8,
-    marginBottom: 24,
-    marginRight: 0,
-    marginLeft: 0,
-    focusHeight: 400,
-    boundedFocusHeight: 0,
-    contextHeight: 80,
-    boundedContextHeight: 0,
-    brushHandleHeight: 0,
-  });
+  const marginRight =
+    axisWidth * axes.y.filter((d) => d.axisSide === "right").length || 20;
 
-  const [chartState, setChartState] = useState({
-    focusX: null,
-    focusYs: [],
-    contextX: null,
-    contextYs: [],
-    pathGenerators: [],
-    brush: null,
-    brushG: null,
-    selectedDateExtent: null,
-    iActive: null,
-    activeG: null,
-  });
+  const marginLeft =
+    axisWidth * axes.y.filter((d) => d.axisSide === "left").length;
 
-  function setup() {
-    const { axisWidth, focusHeight, marginBottom, marginTop, contextHeight } =
-      dimensions;
+  const boundedFocusHeight = focusHeight - marginTop - marginBottom;
 
-    const marginRight =
-      axisWidth * axes.y.filter((d) => d.axisSide === "right").length || 20;
+  const boundedContextHeight = contextHeight - marginTop - marginBottom;
+  const brushHandleHeight = boundedContextHeight;
 
-    const marginLeft =
-      axisWidth * axes.y.filter((d) => d.axisSide === "left").length;
+  const clipId = `${id}-clip`;
 
-    const boundedFocusHeight = focusHeight - marginTop - marginBottom;
-
-    const boundedContextHeight = contextHeight - marginTop - marginBottom;
-    const brushHandleHeight = boundedContextHeight;
-
-    const focusX = d3.scaleUtc();
-    const focusYs = axes.y.map(({ isLogScale }) => {
-      const scale = isLogScale ? d3.scaleLog : d3.scaleLinear;
-      return scale().range([focusHeight - marginBottom, marginTop]);
-    });
-
-    const contextX = d3.scaleUtc();
-    const contextYs = axes.y.map(({ isLogScale }) => {
-      const scale = isLogScale ? d3.scaleLog : d3.scaleLinear;
-      return scale().range([contextHeight - marginBottom, marginTop]);
-    });
-
-    const pathGenerators = data.series.map((d) => {
-      if (d.type === "line")
-        return (x, y) =>
-          d3
-            .line()
-            .defined((d) => d !== null && d !== undefined && !isNaN(d))
-            .x((_, i) => x(data.dates[i]))
-            .y((d) => y(d))
-            .curve(d3.curveMonotoneX);
-      if (d.type === "area")
-        return (x, y) =>
-          d3
-            .area()
-            .defined((d) => d !== null && d !== undefined && !isNaN(d))
-            .x((_, i) => x(data.dates[i]))
-            .y0(y.range()[0])
-            .y1((d) => y(d))
-            .curve(d3.curveMonotoneX);
-      if (d.type === "stackedArea")
-        return (x, y) =>
-          d3
-            .area()
-            .x((_, i) => x(data.dates[i]))
-            .y0((d) => Math.min(y.range()[0], y(d[0])))
-            .y1((d) => y(d[1]))
-            .curve(d3.curveMonotoneX);
-    });
-
-    const selectedSeries = new Set(data.series.map((d) => d.label));
-    const selectedDateExtent = d3.extent(data.dates);
-
-    setDimensions((prevState) => ({
-      ...prevState,
-      marginRight,
-      marginLeft,
-      boundedContextHeight,
-      boundedFocusHeight,
-      brushHandleHeight,
-    }));
-
-    setChartState((prevState) => ({
-      ...prevState,
-      focusX,
-      focusYs,
-      contextX,
-      contextYs,
-      pathGenerators,
-      selectedDateExtent,
-    }));
-
-    setSelectedSeries(selectedSeries);
-    selectedSeriesRef.current = selectedSeries;
+  function brushResizePath(d) {
+    const e = +(d == "e"),
+      x = e ? 1 : -1,
+      y = brushHandleHeight;
+    return `M${0.5 * x},0A6,6 0 0 ${e} ${6.5 * x},6V${y - 6}A6,6 0 0 ${e} ${
+      0.5 * x
+    },${y}ZM${2.5 * x},8V${y - 8}M${4.5 * x},8V${y - 8}`;
   }
 
-  function scaffold() {
-    const container = d3.select(chartRef.current);
-
-    container.append("div").attr("class", "chart-title").text(title);
-
-    const focusSvg = container.append("svg").attr("class", "focus-svg");
-
-    const clipId = `${id}-clip`;
-    const clipRect = focusSvg
-      .append("clipPath")
-      .attr("id", clipId)
-      .append("rect")
-      .attr("x", dimensions.marginLeft)
-      .attr("y", dimensions.marginTop - 1)
-      .attr("height", dimensions.boundedFocusHeight + 2);
-
-    const focusPeripheralsG = focusSvg.append("g");
-
-    const focusXAxisG = focusSvg
-      .append("g")
-      .attr("class", "axis axis--x axis-label");
-
-    const focusYAxisG = focusSvg
-      .append("g")
-      .selectAll("g")
-      .data(axes.y)
-      .join("g")
-      .attr("class", "axis axis--y axis-label")
-      .style("color", (d) => d.color);
-
-    const focusSeriesG = focusSvg
-      .append("g")
-      .attr("clip-path", `url(#${clipId})`);
-
-    const activeG = focusSvg.append("g").attr("class", "active-g");
-
-    activeG
-      .append("line")
-      .attr("class", "active-line")
-      .attr("y1", dimensions.marginTop)
-      .attr("y2", dimensions.focusHeight - dimensions.marginBottom);
-
-    const captureRect = focusSvg
-      .append("rect")
-      .attr("class", "capture-rect")
-      .attr("x", dimensions.marginLeft)
-      .attr("y", 0)
-      .attr("height", dimensions.focusHeight);
-
-    const contextSvg = container.append("svg").attr("class", "context-svg");
-
-    const contextXAxisG = contextSvg
-      .append("g")
-      .attr("class", "axis axis--x axis-label");
-
-    const contextYAxisG = contextSvg
-      .append("g")
-      .selectAll("g")
-      .data(axes.y)
-      .join("g")
-      .attr("class", "axis axis--y axis-label")
-      .style("color", (d) => d.color);
-
-    const contextSeriesG = contextSvg.append("g");
-
-    const brushG = contextSvg.append("g").attr("class", "brush-g");
-    const brushHandle = brushG
-      .selectAll(".handle--custom")
-      .data([{ type: "w" }, { type: "e" }])
-      .join("path")
-      .attr("class", "handle--custom")
-      .attr("d", brushResizePath);
-
-    if (footnotes) {
-      container
-        .append("div")
-        .attr("class", "v-footnotes")
-        .data(footnotes)
-        .join("p")
-        .attr("class", "footnote")
-        .text((d) => d);
-    }
-
-    setChartState((prevState) => ({
-      ...prevState,
-      container,
-      focusSvg,
-      focusSeriesG,
-      clipRect,
-      captureRect,
-      brushG,
-      brushHandle,
-      contextSvg,
-      focusXAxisG,
-      focusYAxisG,
-      contextXAxisG,
-      contextYAxisG,
-      contextSeriesG,
-      activeG,
-      focusPeripheralsG,
-      clipId,
-    }));
-  }
-
-  function wrangle(selectedDateExtent) {
-    const { contextX, focusYs, contextYs, focusX } = chartState;
-    contextX.domain(d3.extent(data.dates));
+  function wrangle() {
+    contextX.current = contextX.current.domain(d3.extent(data.dates));
 
     const contextYMins = [];
     const contextYMaxes = [];
 
-    focusYs.forEach((y, i) => {
+    focusYs.current.forEach((y, i) => {
       const filteredData = data.series.filter((d) => d.axisIndex === i);
       contextYMins[i] = d3.min(filteredData, (d) =>
         d3.min(d.stackedValues ? d.stackedValues.map((d) => d[1]) : d.values)
@@ -252,28 +77,28 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     });
 
     if (axes.yAlignZero) {
-      alignZero(contextYs, contextYMins, contextYMaxes);
+      alignZero(contextYs.current, contextYMins, contextYMaxes);
     } else {
-      contextYs.forEach((y, i) => {
+      contextYs.current.forEach((y, i) => {
         y.domain([contextYMins[i], contextYMaxes[i]]);
       });
     }
 
-    focusX.domain(selectedDateExtent);
+    focusX.current = focusX.current.domain(selectedDateExtent.current);
 
     const startIndex = Math.max(
       0,
-      d3.bisectLeft(data.dates, selectedDateExtent[0]) - 1
+      d3.bisectLeft(data.dates, selectedDateExtent.current[0]) - 1
     );
     const endIndex = Math.min(
       data.dates.length,
-      d3.bisectRight(data.dates, selectedDateExtent[1]) + 1
+      d3.bisectRight(data.dates, selectedDateExtent.current[1]) + 1
     );
 
     const focusYMins = [];
     const focusYMaxes = [];
 
-    focusYs.forEach((y, i) => {
+    focusYs.current.forEach((y, i) => {
       const filteredData = data.series.filter((d) => d.axisIndex === i);
       focusYMins[i] = d3.min(filteredData, (d) =>
         d3.min(
@@ -293,9 +118,9 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     });
 
     if (axes.yAlignZero) {
-      alignZero(focusYs, focusYMins, focusYMaxes);
+      alignZero(focusYs.current, focusYMins, focusYMaxes);
     } else {
-      focusYs.forEach((y, i) => {
+      focusYs.current.forEach((y, i) => {
         if (focusYMins[i] === undefined || focusYMaxes[i] === undefined) {
           y.domain([contextYMins[i], contextYMaxes[i]]);
         } else {
@@ -305,13 +130,31 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     }
   }
 
-  function brushResizePath(d) {
-    const e = +(d.type == "e"),
-      x = e ? 1 : -1,
-      y = dimensions.brushHandleHeight;
-    return `M${0.5 * x},0A6,6 0 0 ${e} ${6.5 * x},6V${y - 6}A6,6 0 0 ${e} ${
-      0.5 * x
-    },${y}ZM${2.5 * x},8V${y - 8}M${4.5 * x},8V${y - 8}`;
+  function stackData() {
+    const stackSeries = data.series.filter(
+      (d) => d.type === "stackedArea" && selectedSeries.current.has(d.label)
+    );
+
+    if (stackSeries.length === 0) return;
+
+    const stackKeys = stackSeries.map((d) => d.label);
+
+    const stackData = d3
+      .stack()
+      .keys(stackKeys)
+      .order(d3.stackOrderNone)
+      .offset(d3.stackOffsetDiverging)(
+      d3.zip(...stackSeries.map((d) => d.values)).map((values) =>
+        values.reduce((d, v, i) => {
+          d[stackKeys[i]] = v;
+          return d;
+        }, {})
+      )
+    );
+
+    stackSeries.forEach((d, i) => {
+      d.stackedValues = stackData[i];
+    });
   }
 
   function alignZero(ys, yMins, yMaxes) {
@@ -356,48 +199,6 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     }
   }
 
-  function resized(brush) {
-    const {
-      marginLeft,
-      marginRight,
-      marginTop,
-      marginBottom,
-      focusHeight,
-      contextHeight,
-    } = dimensions;
-
-    const {
-      focusX,
-      contextX,
-      focusSvg,
-      captureRect,
-      clipRect,
-      contextSvg,
-      container,
-      brushG,
-      selectedDateExtent,
-    } = chartState;
-
-    let width = container.node().clientWidth;
-
-    focusX.range([marginLeft, width - marginRight]);
-    contextX.range([marginLeft, width - marginRight]);
-
-    brush.extent([
-      [marginLeft, marginTop + 0.5],
-      [width - marginRight, contextHeight - marginBottom + 0.5],
-    ]);
-
-    focusSvg.attr("viewBox", [0, 0, width, focusHeight]);
-    clipRect.attr("width", width - marginLeft - marginRight);
-    captureRect.attr("width", width - marginLeft - marginRight);
-    brushG.call(brush).call(brush.move, selectedDateExtent.map(contextX));
-
-    contextSvg.attr("viewBox", [0, 0, width, contextHeight]);
-
-    render();
-  }
-
   function render() {
     renderFocus();
     renderContext();
@@ -412,77 +213,77 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   }
 
   function renderPeripherals() {
-    let width = chartState.container.node().clientWidth;
-    let boundedWidth = width - dimensions.marginLeft - dimensions.marginRight;
+    const container = d3.select(chartRef.current);
+
+    let width = container.node().clientWidth;
+    let boundedWidth = width - marginLeft - marginRight;
+
+    const focusPeripheralsG = d3
+      .select(focusRef.current)
+      .select(".peripherals");
 
     if (peripherals.highlightedAreas) {
-      chartState.focusPeripheralsG
+      focusPeripheralsG
         .selectAll(".highlighted-area-rect")
         .data(peripherals.highlightedAreas)
         .join((enter) =>
           enter
             .append("rect")
             .attr("class", "highlighted-area-rect")
-            .attr("clip-path", `url(#${chartState.clipId})`)
+            .attr("clip-path", `url(#${clipId})`)
             .attr("fill", (d) => d.color)
         )
         .attr("x", (d) =>
-          d.x0 === undefined ? dimensions.marginLeft : chartState.focusX(d.x0)
+          d.x0 === undefined ? marginLeft : focusX.current(d.x0)
         )
         .attr("width", (d) =>
           d.x0 === undefined
             ? boundedWidth
-            : chartState.focusX(d.x1) - chartState.focusX(d.x0)
+            : focusX.current(d.x1) - focusX.current(d.x0)
         )
         .attr("y", (d) =>
-          d.y0 === undefined
-            ? dimensions.marginTop
-            : chartState.focusYs[d.axisIndex](d.y0)
+          d.y0 === undefined ? marginTop : focusYs.current[d.axisIndex](d.y0)
         )
         .attr("height", (d) =>
           d.x0 === undefined
-            ? dimensions.boundedFocusHeight
-            : chartState.focusYs[d.axisIndex](d.y1) -
-              chartState.focusYs[d.axisIndex](d.y0)
+            ? boundedFocusHeight
+            : focusYs.current[d.axisIndex](d.y1) -
+              focusYs.current[d.axisIndex](d.y0)
         );
     }
   }
 
   function renderFocusXAxis() {
-    const { focusHeight, marginBottom } = dimensions;
-    const { focusX, focusXAxisG } = chartState;
+    const container = d3.select(chartRef.current);
+    const focusXAxisG = d3.select(focusRef.current).select(".axis--x");
 
-    let width = chartState.container.node().clientWidth;
-    let boundedWidth = width - dimensions.marginLeft - dimensions.marginRight;
+    let width = container.node().clientWidth;
+    let boundedWidth = width - marginLeft - marginRight;
 
     focusXAxisG
       .attr("transform", `translate(0,${focusHeight - marginBottom})`)
       .call(
         d3
-          .axisBottom(focusX)
+          .axisBottom(focusX.current)
           .tickSizeOuter(0)
           .ticks(boundedWidth / 100)
       );
   }
 
   function renderFocusYAxes() {
-    let width = chartState.container.node().clientWidth;
+    const container = d3.select(chartRef.current);
 
-    const {
-      axisOffset,
-      marginLeft,
-      axisWidth,
-      marginRight,
-      boundedFocusHeight,
-      marginTop,
-    } = dimensions;
+    let width = container.node().clientWidth;
 
-    const { focusYAxisG, focusYs } = chartState;
+    const focusYAxisG = d3
+      .select(focusRef.current)
+      .selectAll(".axis--y")
+      .data(axes.y);
 
     focusYAxisG
       .attr("display", (d, i) =>
         data.series.filter(
-          (e) => selectedSeries.has(e.label) && e.axisIndex === i
+          (e) => selectedSeries.current.has(e.label) && e.axisIndex === i
         ).length
           ? null
           : "none"
@@ -499,11 +300,12 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
         const axis = d.axisSide === "left" ? d3.axisLeft : d3.axisRight;
 
         d3.select(n[i]).call(
-          axis(focusYs[i])
+          axis(focusYs.current[i])
             .ticks(boundedFocusHeight / 50)
             .tickFormat((t) =>
               d.isLogScale
-                ? focusYs[i].tickFormat(boundedFocusHeight / 50)(t) !== ""
+                ? focusYs.current[i].tickFormat(boundedFocusHeight / 50)(t) !==
+                  ""
                   ? d.format(t)
                   : ""
                 : d.format(t)
@@ -528,12 +330,12 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   }
 
   function renderFocusSeries() {
-    const { focusSeriesG, pathGenerators, focusX, focusYs } = chartState;
+    const focusSeriesG = d3.select(focusRef.current).select(".series");
 
     focusSeriesG
       .selectAll("path")
       .data(
-        data.series.filter((s) => selectedSeriesRef.current.has(s.label)),
+        data.series.filter((s) => selectedSeries.current.has(s.label)),
         (d) => d.label
       )
       .join((enter) =>
@@ -549,13 +351,15 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       .each(function (d) {
         if (d.type !== "line") d3.select(this).lower();
       })
-      .attr("display", (d) => (selectedSeries.has(d.label) ? null : "none"))
-      .attr("d", (d, i) =>
-        pathGenerators[i](
-          focusX,
-          focusYs[d.axisIndex]
-        )(d.stackedValues || d.values)
-      );
+      .attr("display", (d) =>
+        selectedSeries.current.has(d.label) ? null : "none"
+      )
+      .attr("d", (d, i) => {
+        return pathGenerators.current[i](
+          focusX.current,
+          focusYs.current[d.axisIndex]
+        )(d.stackedValues || d.values);
+      });
   }
 
   function renderContext() {
@@ -565,30 +369,36 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   }
 
   function renderContextXAxis() {
-    let width = chartState.container.node().clientWidth;
-    let boundedWidth = width - dimensions.marginLeft - dimensions.marginRight;
+    const container = d3.select(chartRef.current);
 
-    const { contextHeight, marginBottom } = dimensions;
-    const { contextXAxisG, contextX } = chartState;
+    let width = container.node().clientWidth;
+    let boundedWidth = width - marginLeft - marginRight;
+
+    const contextXAxisG = d3.select(contextRef.current).select(".axis--x");
+
     contextXAxisG
       .attr("transform", `translate(0,${contextHeight - marginBottom})`)
       .call(
         d3
-          .axisBottom(contextX)
+          .axisBottom(contextX.current)
           .tickSizeOuter(0)
           .ticks(boundedWidth / 100)
       );
   }
 
   function renderContextYAxes() {
-    const { contextYAxisG, contextYs } = chartState;
-    const { axisOffset, axisWidth, marginLeft, marginRight } = dimensions;
-    let width = chartState.container.node().clientWidth;
+    const container = d3.select(chartRef.current);
+    let width = container.node().clientWidth;
+
+    const contextYAxisG = d3
+      .select(contextRef.current)
+      .selectAll(".axis--y")
+      .data(axes.y);
 
     contextYAxisG
       .attr("display", (d, i) =>
         data.series.filter(
-          (e) => selectedSeries.has(e.label) && e.axisIndex === i
+          (e) => selectedSeries.current.has(e.label) && e.axisIndex === i
         ).length
           ? null
           : "none"
@@ -603,12 +413,14 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       })
       .each((d, i, n) => {
         const axis = d.axisSide === "left" ? d3.axisLeft : d3.axisRight;
-        d3.select(n[i]).call(axis(contextYs[i]).ticks(2).tickFormat(d.format));
+        d3.select(n[i]).call(
+          axis(contextYs.current[i]).ticks(2).tickFormat(d.format)
+        );
       });
   }
 
   function renderContextSeries() {
-    const { contextSeriesG, pathGenerators, contextX, contextYs } = chartState;
+    const contextSeriesG = d3.select(contextRef.current).select(".series");
 
     contextSeriesG
       .selectAll("path")
@@ -627,82 +439,133 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
         if (d.type !== "line") d3.select(this).lower();
       })
       .attr("display", (d) =>
-        selectedSeriesRef.current.has(d.label) ? null : "none"
+        selectedSeries.current.has(d.label) ? null : "none"
       )
       .attr("d", (d, i) =>
-        pathGenerators[i](
-          contextX,
-          contextYs[d.axisIndex]
+        pathGenerators.current[i](
+          contextX.current,
+          contextYs.current[d.axisIndex]
         )(d.stackedValues || d.values)
       );
   }
 
-  const brushStarted = () => {
-    chartState.brushG.classed("is-brushing", true);
-  };
+  function resized(brush) {
+    if (!chartRef.current) return;
+    const container = d3.select(chartRef.current);
+    // if (
+    //   container.node().clientWidth === 0 ||
+    //   container.node().clientWidth === width
+    // )
+    //   return;
 
-  const brushed = ({ selection }) => {
-    let { contextX, brushHandle } = chartState;
+    const focusSvg = d3.select(focusRef.current);
+    const contextSvg = d3.select(contextRef.current);
 
+    let w = container.node().clientWidth;
+    // width.current = w;
+
+    focusX.current = focusX.current.range([marginLeft, w - marginRight]);
+
+    contextX.current = contextX.current.range([marginLeft, w - marginRight]);
+
+    brush.extent([
+      [marginLeft, marginTop + 0.5],
+      [w - marginRight, contextHeight - marginBottom + 0.5],
+    ]);
+
+    focusSvg.attr("viewBox", [0, 0, w, focusHeight]);
+    focusSvg.select(".clip-rect").attr("width", w - marginLeft - marginRight);
+    focusSvg
+      .select(".capture-rect")
+      .attr("width", w - marginLeft - marginRight);
+
+    contextSvg
+      .select(".brush-g")
+      .call(brush)
+      .call(brush.move, selectedDateExtent.current.map(contextX.current));
+
+    contextSvg.attr("viewBox", [0, 0, w, contextHeight]);
+
+    render();
+  }
+
+  function brushStarted() {
+    d3.select(contextRef.current)
+      .select(".brush-g")
+      .classed("is-brushing", true);
+  }
+
+  function brushed({ selection }) {
     if (!selection) return;
 
-    let sde = selection.map(contextX.invert, contextX).map(d3.utcDay.round);
+    const brushHandle = d3
+      .select(contextRef.current)
+      .selectAll(".handle--custom");
+
+    let sde = selection
+      .map(contextX.current.invert, contextX.current)
+      .map(d3.utcDay.round);
+
     brushHandle.attr(
       "transform",
-      (_, i) => `translate(${selection[i]},${dimensions.marginTop})`
+      (_, i) => `translate(${selection[i]},${marginTop})`
     );
 
-    setChartState((prevState) => ({ ...prevState, selectedDateExtent: sde }));
+    selectedDateExtent.current = sde;
 
-    wrangle(sde);
+    wrangle();
     renderFocus();
-  };
+  }
 
-  const brushEnded = () => {
-    chartState.brushG.classed("is-brushing", false);
-  };
+  function brushEnded() {
+    d3.select(contextRef.current)
+      .select(".brush-g")
+      .classed("is-brushing", false);
+  }
 
   function pointerEntered() {
-    chartState.activeG.classed("is-active", true);
+    d3.select(focusRef.current).select(".active-g").classed("is-active", true);
     setTooltipShown(true);
   }
 
   const pointerMoved = lodash.throttle((event) => {
-    const [xm, ym] = d3.pointer(event, chartState.container.node());
-    const xDate = chartState.focusX.invert(xm);
+    const container = d3.select(chartRef.current);
+
+    const [xm, ym] = d3.pointer(event, container.node());
+    const xDate = focusX.current.invert(xm);
     const i = d3.bisectCenter(data.dates, xDate);
 
-    if (chartState.iActive !== i) {
-      let iActive = i;
-      renderActive(iActive);
+    if (active !== i) {
+      let active = i;
+      renderActive(active);
 
-      setChartState((prev) => ({ ...prev, iActive }));
+      setActive(active);
     }
-    moveTooltip(chartState.focusX(xDate), ym);
+
+    moveTooltip(focusX.current(xDate), ym);
   }, 100);
 
   const pointerLeft = () => {
-    let iActive = null;
-    chartState.activeG.classed("is-active", false);
+    d3.select(focusRef.current).select(".active-g").classed("is-active", false);
 
     setTooltipShown(false);
-    setChartState((prev) => ({ ...prev, iActive }));
+    setActive(null);
   };
 
-  function renderActive(iActive) {
-    chartState.activeG.attr(
-      "transform",
-      `translate(${chartState.focusX(data.dates[iActive])},0)`
-    );
+  function renderActive(active) {
+    d3.select(focusRef.current)
+      .select(".active-g")
+      .attr("transform", `translate(${focusX.current(data.dates[active])},0)`);
 
-    chartState.activeG
+    d3.select(focusRef.current)
+      .select(".active-g")
       .selectAll(".active-circle")
       .data(
         data.series.filter(
           (d) =>
-            d.values[iActive] !== null &&
-            d.values[iActive] !== undefined &&
-            !isNaN(d.values[iActive])
+            d.values[active] !== null &&
+            d.values[active] !== undefined &&
+            !isNaN(d.values[active])
         ),
         (d) => d.label
       )
@@ -721,22 +584,26 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       .attr(
         "transform",
         (d) =>
-          `translate(0,${chartState.focusYs[d.axisIndex](
+          `translate(0,${focusYs.current[d.axisIndex](
             d.stackedValues
-              ? d.stackedValues[iActive][1] >= 0
-                ? d.stackedValues[iActive][1]
-                : d.stackedValues[iActive][0]
-              : d.values[iActive]
+              ? d.stackedValues[active][1] >= 0
+                ? d.stackedValues[active][1]
+                : d.stackedValues[active][0]
+              : d.values[active]
           )})`
       )
-      .attr("display", (d) => (selectedSeries.has(d.label) ? null : "none"));
+      .attr("display", (d) =>
+        selectedSeries.current.has(d.label) ? null : "none"
+      );
   }
 
   const moveTooltip = (xm, ym) => {
+    const container = d3.select(chartRef.current);
+
     const offset = 12;
     let x, y;
     const tRect = tooltipRef.current.getBoundingClientRect();
-    const bRect = chartState.container.node().getBoundingClientRect();
+    const bRect = container.node().getBoundingClientRect();
 
     if (xm < bRect.width / 2) {
       x = Math.min(bRect.width, xm + offset);
@@ -755,20 +622,65 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
   };
 
   useEffect(() => {
-    setup();
-    setSetupComplete(true);
+    const pg = data.series.map((d) => {
+      if (d.type === "line") {
+        return (x, y) =>
+          d3
+            .line()
+            .defined((d) => d !== null && d !== undefined && !isNaN(d))
+            .x((_, i) => x(data.dates[i]))
+            .y((d) => y(d))
+            .curve(d3.curveMonotoneX);
+      }
+
+      if (d.type === "area") {
+        return (x, y) =>
+          d3
+            .area()
+            .defined((d) => d !== null && d !== undefined && !isNaN(d))
+            .x((_, i) => x(data.dates[i]))
+            .y0(y.range()[0])
+            .y1((d) => y(d))
+            .curve(d3.curveMonotoneX);
+      }
+
+      if (d.type === "stackedArea") {
+        return (x, y) =>
+          d3
+            .area()
+            .x((_, i) => x(data.dates[i]))
+            .y0((d) => Math.min(y.range()[0], y(d[0])))
+            .y1((d) => y(d[1]))
+            .curve(d3.curveMonotoneX);
+      }
+    });
+
+    selectedSeries.current = new Set(data.series.map((d) => d.label));
+    selectedDateExtent.current = d3.extent(data.dates);
+
+    // const focusX = d3.scaleUtc();
+    const fys = axes.y.map(({ isLogScale }) => {
+      const scale = isLogScale ? d3.scaleLog : d3.scaleLinear;
+      return scale().range([focusHeight - marginBottom, marginTop]);
+    });
+
+    const cys = axes.y.map(({ isLogScale }) => {
+      const scale = isLogScale ? d3.scaleLog : d3.scaleLinear;
+      return scale().range([contextHeight - marginBottom, marginTop]);
+    });
+
+    pathGenerators.current = pg;
+
+    focusYs.current = fys;
+    contextYs.current = cys;
+
+    setReady(true);
   }, []);
 
   useEffect(() => {
-    if (setupComplete) {
-      scaffold();
-      setScaffoldComplete(true);
-    }
-  }, [setupComplete]);
-
-  useEffect(() => {
-    if (scaffoldComplete) {
-      wrangle(chartState.selectedDateExtent);
+    if (ready) {
+      stackData();
+      wrangle();
 
       const brush = d3
         .brushX()
@@ -776,30 +688,30 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
         .on("brush", brushed)
         .on("end", brushEnded);
 
-      const ro = new ResizeObserver(() => resized(brush));
-      ro.observe(chartRef.current);
-
-      chartState.captureRect
+      d3.select(focusRef.current)
+        .select(".capture-rect")
         .on("pointerenter", pointerEntered)
         .on("pointermove", pointerMoved)
         .on("pointerleave", pointerLeft)
         .on("touchstart", (event) => event.preventDefault());
+
+      const ro = new ResizeObserver(() => resized(brush));
+      ro.observe(chartRef.current);
 
       return () => {
         ro.disconnect();
         brush.on("start", null).on("brush", null).on("end", null);
       };
     }
-  }, [scaffoldComplete]);
+  }, [ready]);
 
   useEffect(() => {
-    if (scaffoldComplete) {
-      selectedSeriesRef.current = selectedSeries;
-
-      wrangle(chartState.selectedDateExtent);
+    if (ready) {
+      stackData();
+      wrangle();
       render();
     }
-  }, [selectedSeries]);
+  }, [ss]);
 
   return (
     <article
@@ -807,6 +719,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       id={id}
       className="relative overflow-hidden min-h-[600px]"
     >
+      {/* Loader */}
       <div
         className={`absolute inset-0 z-10 bg-inherit flex items-center justify-center ${
           loading ? "" : "hidden"
@@ -821,8 +734,89 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
           </span>
         </div>
       </div>
+
       <div ref={chartRef} className="line-area-chart chart-container">
-        {/* CSV Button */}
+        <h2 className="chart-title">{title}</h2>
+
+        <svg ref={focusRef} className="focus-svg">
+          <clipPath id={clipId}>
+            <rect
+              className="clip-rect"
+              x={marginLeft}
+              y={marginTop}
+              height={focusHeight}
+            ></rect>
+          </clipPath>
+
+          {/* Peripherals */}
+          <g className="peripherals"></g>
+
+          {/* X axis */}
+          <g className="axis axis--x axis-label"></g>
+
+          {/* Y Axes */}
+          <g className="y-g">
+            {axes.y.map(({ color, label }) => (
+              <g
+                key={color + label}
+                className="axis axis--y axis-label"
+                style={{ color }}
+              ></g>
+            ))}
+          </g>
+
+          {/* Series */}
+          <g className="series" clipPath={`url(#${clipId})`}></g>
+
+          {/* Active point */}
+          <g className="active-g">
+            <line
+              className="active-line"
+              y1={marginTop}
+              y2={focusHeight - marginBottom}
+            ></line>
+          </g>
+
+          {/* Capture rect */}
+          <rect
+            className="capture-rect"
+            x={marginLeft}
+            y={0}
+            height={focusHeight}
+          ></rect>
+        </svg>
+
+        <svg ref={contextRef} className="context-svg">
+          {/* X axis */}
+          <g className="axis axis--x axis-label"></g>
+
+          {/* Y Axes */}
+          <g>
+            {axes.y.map(({ color, label }) => (
+              <g
+                key={color + label}
+                className="axis axis--y axis-label"
+                style={{ color }}
+              ></g>
+            ))}
+          </g>
+
+          {/* Series */}
+          <g className="series"></g>
+
+          {/* Brush */}
+          <g className="brush-g">
+            {[{ type: "w" }, { type: "e" }].map(({ type }) => (
+              <path
+                key={type}
+                className="handle--custom"
+                d={brushResizePath(type)}
+              ></path>
+            ))}
+          </g>
+        </svg>
+
+        {/* Actions */}
         <div
           ref={actionRef}
           className="flex justify-between items-center pb-5 ignore-me"
@@ -833,14 +827,14 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
         </div>
 
         {/* Swatches */}
-        <div ref={swatchRef} style={{ gridRow: 5 }}>
-          {scaffoldComplete && (
+        <div style={{ gridRow: 5 }}>
+          {ready ? (
             <Swatches
               series={data.series}
               selectedSeries={selectedSeries}
-              setSelectedSeries={setSelectedSeries}
+              setSS={setSS}
             />
-          )}
+          ) : null}
         </div>
 
         {/* Tooltip */}
@@ -852,7 +846,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
             <Tooltip
               data={data}
               selectedSeries={selectedSeries}
-              iActive={chartState.iActive}
+              active={active}
             />
           ) : null}
         </div>

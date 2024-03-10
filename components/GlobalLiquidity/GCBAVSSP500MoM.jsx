@@ -5,7 +5,7 @@ import * as d3 from "d3";
 
 import LineChart from "../LineChart/LineChart";
 
-const GCBAVSSP500 = ({ data, color }) => {
+const GCBAVSSP500MoM = ({ data, color }) => {
   const {
     fedBalanceSheet,
     pbocBalanceSheet,
@@ -114,4 +114,4 @@ const GCBAVSSP500 = ({ data, color }) => {
   );
 };
 
-export default GCBAVSSP500;
+export default GCBAVSSP500MoM;

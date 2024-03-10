@@ -1,7 +1,7 @@
 import { utcFormat } from "d3";
 
-const Tooltip = ({ data, selectedSeries, iActive }) => {
-  const date = utcFormat("%B %-d, %Y")(data.dates[iActive]);
+const Tooltip = ({ data, selectedSeries, active }) => {
+  const date = utcFormat("%B %-d, %Y")(data.dates[active]);
 
   return (
     <>
@@ -9,9 +9,9 @@ const Tooltip = ({ data, selectedSeries, iActive }) => {
       {data.series
         .filter(
           (d) =>
-            selectedSeries.has(d.label) &&
-            (d.values[iActive] !== null) & (d.values[iActive] !== undefined) &&
-            !isNaN(d.values[iActive])
+            selectedSeries.current.has(d.label) &&
+            (d.values[active] !== null) & (d.values[active] !== undefined) &&
+            !isNaN(d.values[active])
         )
         .map((d) => (
           <div key={d.label}>
@@ -21,7 +21,7 @@ const Tooltip = ({ data, selectedSeries, iActive }) => {
             ></span>
             &nbsp;
             <span className="sub-label">{d.label}</span>{" "}
-            <span className="data-label">{d.format(d.values[iActive])}</span>
+            <span className="data-label">{d.format(d.values[active])}</span>
           </div>
         ))}
     </>

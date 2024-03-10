@@ -5,6 +5,7 @@ import LineChart from "../LineChart/LineChart";
 
 const WorldM2Growth = ({ data, color }) => {
   const { globalM2, btcGlobalLiquidityData } = data;
+
   return (
     <LineChart
       {...{
