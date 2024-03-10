@@ -500,7 +500,8 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
 
     const brushHandle = d3
       .select(contextRef.current)
-      .selectAll(".handle--custom");
+      .selectAll(".handle--custom")
+      .data([{ type: "w" }, { type: "e" }]);
 
     let sde = selection
       .map(contextX.current.invert, contextX.current)
@@ -645,13 +646,20 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       }
 
       if (d.type === "stackedArea") {
-        return (x, y) =>
-          d3
+        return (x, y) => {
+          return d3
             .area()
             .x((_, i) => x(data.dates[i]))
-            .y0((d) => Math.min(y.range()[0], y(d[0])))
-            .y1((d) => y(d[1]))
+            .y0((d, i) => {
+              if (!d) return;
+              return Math.min(y.range()[0], y(d[0]));
+            })
+            .y1((d) => {
+              if (!d) return;
+              return y(d[1]);
+            })
             .curve(d3.curveMonotoneX);
+        };
       }
     });
 
