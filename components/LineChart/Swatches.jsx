@@ -16,18 +16,23 @@ const Swatches = ({ series, selectedSeries, setSS }) => {
   };
 
   return (
-    <div className="v-swatches">
+    <div className="flex flex-wrap justify-center gap-y-1 gap-x-5">
       {series.map((item) => (
-        <div
+        <button
           key={item.label}
-          className={`item ${
-            selectedSeries.current.has(item.label) ? "is-selected" : ""
-          }`}
+          className={`flex items-center cursor-pointer gap-1 `}
           onClick={() => toggleSelected(item.label)}
         >
-          <div className="item__swatch" style={{ color: item.color }}></div>
-          <div className="item__label legend-label">{item.label}</div>
-        </div>
+          <div
+            className={`w-4 h-4 rounded-full border-2 border-current ${
+              selectedSeries.current.has(item.label)
+                ? "bg-current"
+                : " bg-transparent"
+            }`}
+            style={{ color: item.color }}
+          ></div>
+          <div className="text-text-light text-sm">{item.label}</div>
+        </button>
       ))}
     </div>
   );

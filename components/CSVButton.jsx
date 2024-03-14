@@ -1,7 +1,6 @@
-import React from "react";
+import { csvFormat } from "d3";
 
 import CSVIcon from "./icons/CSVIcon";
-import { csvFormat } from "d3";
 
 const CSVButton = ({ data, title }) => {
   const downloadCSV = () => {
@@ -48,8 +47,8 @@ const CSVButton = ({ data, title }) => {
   };
 
   return (
-    <div className="export">
-      <button className="button--csv" onClick={downloadCSV}>
+    <div className="flex">
+      <button className="csv-button" onClick={downloadCSV}>
         <CSVIcon />
       </button>
     </div>

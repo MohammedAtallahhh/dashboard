@@ -1,14 +1,21 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useRef, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import lodash from "lodash";
+import { throttle } from "lodash";
 
 import Tooltip from "./Tooltip";
 import Swatches from "./Swatches";
 import CSVButton from "../CSVButton";
 import ScreenshotButton from "../ScreenshotButton";
 
-const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
+const LineChart = memo(function LineChart({
+  id,
+  title,
+  data,
+  axes,
+  footnotes,
+  peripherals = {},
+}) {
   const parentRef = useRef(null);
   const chartRef = useRef(null);
   const actionRef = useRef(null);
@@ -529,7 +536,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     setTooltipShown(true);
   }
 
-  const pointerMoved = lodash.throttle((event) => {
+  const pointerMoved = throttle((event) => {
     const container = d3.select(chartRef.current);
 
     const [xm, ym] = d3.pointer(event, container.node());
@@ -725,7 +732,7 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
     <article
       ref={parentRef}
       id={id}
-      className="relative overflow-hidden min-h-[600px]"
+      className="relative overflow-hidden min-h-[600px] mb-10 bg-surface-1 p-6 rounded-md"
     >
       {/* Loader */}
       <div
@@ -743,8 +750,17 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
         </div>
       </div>
 
-      <div ref={chartRef} className="line-area-chart chart-container">
-        <h2 className="chart-title">{title}</h2>
+      <div ref={chartRef} className="line-area-chart grid gap-5">
+        <h2 className="text-lg leading-normal">{title}</h2>
+
+        {/* Actions */}
+        <div
+          ref={actionRef}
+          className="flex justify-between items-center pb-5 ignore-me"
+        >
+          <CSVButton data={data} title={title} />
+          <ScreenshotButton target={parentRef.current} title={title} />
+        </div>
 
         <svg ref={focusRef} className="focus-svg">
           <clipPath id={clipId}>
@@ -824,18 +840,8 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
           </g>
         </svg>
 
-        {/* Actions */}
-        <div
-          ref={actionRef}
-          className="flex justify-between items-center pb-5 ignore-me"
-          style={{ gridRow: 2 }}
-        >
-          <CSVButton data={data} title={title} />
-          <ScreenshotButton target={parentRef.current} title={title} />
-        </div>
-
         {/* Swatches */}
-        <div style={{ gridRow: 5 }}>
+        <div>
           {ready ? (
             <Swatches
               series={data.series}
@@ -845,10 +851,23 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
           ) : null}
         </div>
 
+        {/* Footnotes */}
+        {footnotes ? (
+          <div>
+            {footnotes.map((f) => (
+              <p key={f} className="text-sm text-text-light">
+                {f}
+              </p>
+            ))}
+          </div>
+        ) : null}
+
         {/* Tooltip */}
         <div
           ref={tooltipRef}
-          className={`v-tooltip ${tooltipShown ? "is-active" : ""}`}
+          className={`absolute z-10 pointer-events-none rounded-md p-4 bg-surface-2 shadow-xl transition-opacity ${
+            tooltipShown ? "visible opacity-100" : "opacity-0 invisible"
+          }`}
         >
           {tooltipShown ? (
             <Tooltip
@@ -861,6 +880,6 @@ const LineChart = ({ id, title, data, axes, footnotes, peripherals = {} }) => {
       </div>
     </article>
   );
-};
+});
 
 export default LineChart;

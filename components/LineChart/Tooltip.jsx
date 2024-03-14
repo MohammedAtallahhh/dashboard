@@ -5,7 +5,7 @@ const Tooltip = ({ data, selectedSeries, active }) => {
 
   return (
     <>
-      <div className="sub-label">{date}</div>
+      <div className="text-sm text-text-light mb-3">{date}</div>
       {data.series
         .filter(
           (d) =>
@@ -14,14 +14,16 @@ const Tooltip = ({ data, selectedSeries, active }) => {
             !isNaN(d.values[active])
         )
         .map((d) => (
-          <div key={d.label}>
+          <div key={d.label} className="flex items-center">
             <span
-              className="swatch"
+              className="inline-block w-4 h-4 rounded-full relative"
               style={{ backgroundColor: `${d.color}` }}
             ></span>
             &nbsp;
-            <span className="sub-label">{d.label}</span>{" "}
-            <span className="data-label">{d.format(d.values[active])}</span>
+            <span className="text-sm text-text-light mr-2">
+              {d.label}:
+            </span>{" "}
+            <span className="text-lg">{d.format(d.values[active])}</span>
           </div>
         ))}
     </>

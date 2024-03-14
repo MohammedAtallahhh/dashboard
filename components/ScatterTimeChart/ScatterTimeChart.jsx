@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import regression from "regression";
 import * as d3 from "d3";
+import { throttle } from "lodash";
 
 import CSVButton from "../CSVButton";
 import ScreenshotButton from "../ScreenshotButton";
@@ -144,8 +145,6 @@ const ScatterTimeChart = ({
 
     const container = d3.select(chartRef.current);
     let contextSvg, contextXAxisG, brushG, brushHandle;
-
-    container.append("div").attr("class", "chart-title").text(title);
 
     const svgWrapper = container.append("div");
 
@@ -531,7 +530,7 @@ const ScatterTimeChart = ({
     chartState.activeG.classed("is-active", true);
   }
 
-  function pointerMoved(event) {
+  const pointerMoved = throttle((event) => {
     const hasData = filteredData.length > 0;
 
     if (!hasData) return;
@@ -559,7 +558,7 @@ const ScatterTimeChart = ({
         chartState.y(filteredData[i][1]) + offsetY
       );
     }
-  }
+  }, 100);
 
   function pointerLeft() {
     const hasData = filteredData.length > 0;
@@ -653,7 +652,7 @@ const ScatterTimeChart = ({
     <article
       ref={parentRef}
       id={id}
-      className="relative overflow-hidden min-h-[600px]"
+      className="relative overflow-hidden min-h-[600px] bg-surface-1 p-6 rounded-md mb-10"
     >
       {/* Loader */}
       <div
@@ -671,7 +670,19 @@ const ScatterTimeChart = ({
         </div>
       </div>
 
-      <div ref={chartRef} className="scatter-time-chart chart-container">
+      <div ref={chartRef} className="scatter-time-chart grid gap-5">
+        <h2 className="text-lg leading-normal">{title}</h2>
+
+        {/* Actions */}
+        <div
+          ref={actionRef}
+          className="flex justify-between items-center pb-5 ignore-me"
+          style={{ gridRow: 2 }}
+        >
+          <CSVButton data={data} title={title} />
+          <ScreenshotButton target={parentRef.current} title={title} />
+        </div>
+
         <div className="svg-wrapper" style={{ gridRow: 3 }}>
           <svg
             className="chart-svg"
@@ -689,20 +700,12 @@ const ScatterTimeChart = ({
           </svg>
         </div>
 
-        {/* CSV Button */}
-        <div
-          ref={actionRef}
-          className="flex justify-between items-center pb-5 ignore-me"
-          style={{ gridRow: 2 }}
-        >
-          <CSVButton data={data} title={title} />
-          <ScreenshotButton target={parentRef.current} title={title} />
-        </div>
-
         {/* Tooltip */}
         <div
           ref={tooltipRef}
-          className={`v-tooltip ${tooltipShown ? "is-active" : ""}`}
+          className={`absolute z-10 pointer-events-none rounded-md p-4 bg-surface-2 shadow-xl transition-opacity ${
+            tooltipShown ? "visible opacity-100" : "opacity-0 invisible"
+          }`}
         >
           {tooltipShown ? (
             <Tooltip

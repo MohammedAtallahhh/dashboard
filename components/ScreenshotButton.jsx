@@ -57,9 +57,9 @@ const ScreenshotButton = ({ target, title }) => {
   return (
     <button
       onClick={downloadImage}
-      className="flex items-center gap-1 bg-[#101015] border-[#f7f7f7] border rounded-md p-2 py-1 text-xs font-semibold hover:bg-gray-800"
+      className="flex items-center gap-1 bg-background border-text border rounded-md p-2 py-1 text-xs font-semibold hover:bg-text hover:text-background hover:border-black group"
     >
-      <div className="w-5">
+      <div className="w-5 group-hover:invert">
         <Camera />
       </div>
       Screenshot

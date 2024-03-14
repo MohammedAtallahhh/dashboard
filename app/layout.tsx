@@ -4,12 +4,12 @@ import { Inter } from "next/font/google";
 import Navbar from "../components/Header";
 
 import "./globals.css";
-import "@/css/index.css";
+// import "@/css/index.css";
 import "@/css/line-area-chart.css";
 import "@/css/scatter-time-chart.css";
-import "@/css/tooltip.css";
-import "@/css/swatches.css";
-import "@/css/export.css";
+// import "@/css/tooltip.css";
+// import "@/css/swatches.css";
+// import "@/css/export.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
