@@ -16,28 +16,6 @@ const LineChart = memo(function LineChart({
   footnotes,
   peripherals = {},
 }) {
-  const parentRef = useRef(null);
-  const chartRef = useRef(null);
-  const actionRef = useRef(null);
-  const tooltipRef = useRef(null);
-
-  const focusRef = useRef(null);
-  const contextRef = useRef(null);
-
-  const focusX = useRef(d3.scaleUtc());
-  const focusYs = useRef();
-  const contextX = useRef(d3.scaleUtc());
-  const contextYs = useRef();
-  const selectedDateExtent = useRef([]);
-  const pathGenerators = useRef([]);
-  const selectedSeries = useRef([]);
-  const [ss, setSS] = useState([]);
-
-  const [ready, setReady] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [tooltipShown, setTooltipShown] = useState(false);
-  const [active, setActive] = useState(null);
-
   const axisWidth = 80;
   const axisOffset = 20;
   const marginTop = 8;
@@ -57,6 +35,79 @@ const LineChart = memo(function LineChart({
   const brushHandleHeight = boundedContextHeight;
 
   const clipId = `${id}-clip`;
+  const parentRef = useRef(null);
+  const chartRef = useRef(null);
+  const actionRef = useRef(null);
+  const tooltipRef = useRef(null);
+
+  const focusRef = useRef(null);
+  const contextRef = useRef(null);
+
+  const focusX = useRef(d3.scaleUtc());
+  const focusYs = useRef(
+    axes.y.map(({ isLogScale }) => {
+      const scale = isLogScale ? d3.scaleLog : d3.scaleLinear;
+      return scale().range([focusHeight - marginBottom, marginTop]);
+    })
+  );
+  const contextX = useRef(d3.scaleUtc());
+  const contextYs = useRef(
+    axes.y.map(({ isLogScale }) => {
+      const scale = isLogScale ? d3.scaleLog : d3.scaleLinear;
+      return scale().range([contextHeight - marginBottom, marginTop]);
+    })
+  );
+
+  const selectedSeries = useRef(new Set(data.series.map((d) => d.label)));
+  const selectedDateExtent = useRef(d3.extent(data.dates));
+  const pathGenerators = useRef(
+    data.series.map((d) => {
+      if (d.type === "line") {
+        return (x, y) =>
+          d3
+            .line()
+            .defined((d) => d !== null && d !== undefined && !isNaN(d))
+            .x((_, i) => x(data.dates[i]))
+            .y((d) => y(d))
+            .curve(d3.curveMonotoneX);
+      }
+
+      if (d.type === "area") {
+        return (x, y) =>
+          d3
+            .area()
+            .defined((d) => d !== null && d !== undefined && !isNaN(d))
+            .x((_, i) => x(data.dates[i]))
+            .y0(y.range()[0])
+            .y1((d) => y(d))
+            .curve(d3.curveMonotoneX);
+      }
+
+      if (d.type === "stackedArea") {
+        return (x, y) => {
+          return d3
+            .area()
+            .x((_, i) => x(data.dates[i]))
+            .y0((d, i) => {
+              if (!d) return;
+              return Math.min(y.range()[0], y(d[0]));
+            })
+            .y1((d) => {
+              if (!d) return;
+              return y(d[1]);
+            })
+            .curve(d3.curveMonotoneX);
+        };
+      }
+    })
+  );
+  const [ss, setSS] = useState([]);
+
+  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [tooltipShown, setTooltipShown] = useState(false);
+  const [active, setActive] = useState(null);
+  const [width, setWidth] = useState(0);
 
   function brushResizePath(d) {
     const e = +(d == "e"),
@@ -213,51 +264,9 @@ const LineChart = memo(function LineChart({
   }
 
   function renderFocus() {
-    if (peripherals) renderPeripherals();
     renderFocusXAxis();
     renderFocusYAxes();
     renderFocusSeries();
-  }
-
-  function renderPeripherals() {
-    const container = d3.select(chartRef.current);
-
-    let width = container.node().clientWidth;
-    let boundedWidth = width - marginLeft - marginRight;
-
-    const focusPeripheralsG = d3
-      .select(focusRef.current)
-      .select(".peripherals");
-
-    if (peripherals.highlightedAreas) {
-      focusPeripheralsG
-        .selectAll(".highlighted-area-rect")
-        .data(peripherals.highlightedAreas)
-        .join((enter) =>
-          enter
-            .append("rect")
-            .attr("class", "highlighted-area-rect")
-            .attr("clip-path", `url(#${clipId})`)
-            .attr("fill", (d) => d.color)
-        )
-        .attr("x", (d) =>
-          d.x0 === undefined ? marginLeft : focusX.current(d.x0)
-        )
-        .attr("width", (d) =>
-          d.x0 === undefined
-            ? boundedWidth
-            : focusX.current(d.x1) - focusX.current(d.x0)
-        )
-        .attr("y", (d) =>
-          d.y0 === undefined ? marginTop : focusYs.current[d.axisIndex](d.y0)
-        )
-        .attr("height", (d) =>
-          d.x0 === undefined
-            ? boundedFocusHeight
-            : focusYs.current[d.axisIndex](d.y1) -
-              focusYs.current[d.axisIndex](d.y0)
-        );
-    }
   }
 
   function renderFocusXAxis() {
@@ -459,17 +468,17 @@ const LineChart = memo(function LineChart({
   function resized(brush) {
     if (!chartRef.current) return;
     const container = d3.select(chartRef.current);
-    // if (
-    //   container.node().clientWidth === 0 ||
-    //   container.node().clientWidth === width
-    // )
-    //   return;
+    if (
+      container.node().clientWidth === 0 ||
+      container.node().clientWidth === width
+    )
+      return;
 
     const focusSvg = d3.select(focusRef.current);
     const contextSvg = d3.select(contextRef.current);
 
     let w = container.node().clientWidth;
-    // width.current = w;
+    setWidth(w);
 
     focusX.current = focusX.current.range([marginLeft, w - marginRight]);
 
@@ -630,109 +639,43 @@ const LineChart = memo(function LineChart({
   };
 
   useEffect(() => {
-    const pg = data.series.map((d) => {
-      if (d.type === "line") {
-        return (x, y) =>
-          d3
-            .line()
-            .defined((d) => d !== null && d !== undefined && !isNaN(d))
-            .x((_, i) => x(data.dates[i]))
-            .y((d) => y(d))
-            .curve(d3.curveMonotoneX);
-      }
+    stackData();
+    wrangle();
 
-      if (d.type === "area") {
-        return (x, y) =>
-          d3
-            .area()
-            .defined((d) => d !== null && d !== undefined && !isNaN(d))
-            .x((_, i) => x(data.dates[i]))
-            .y0(y.range()[0])
-            .y1((d) => y(d))
-            .curve(d3.curveMonotoneX);
-      }
+    const brush = d3
+      .brushX()
+      .on("start", brushStarted)
+      .on("brush", brushed)
+      .on("end", brushEnded);
 
-      if (d.type === "stackedArea") {
-        return (x, y) => {
-          return d3
-            .area()
-            .x((_, i) => x(data.dates[i]))
-            .y0((d, i) => {
-              if (!d) return;
-              return Math.min(y.range()[0], y(d[0]));
-            })
-            .y1((d) => {
-              if (!d) return;
-              return y(d[1]);
-            })
-            .curve(d3.curveMonotoneX);
-        };
-      }
-    });
+    d3.select(focusRef.current)
+      .select(".capture-rect")
+      .on("pointerenter", pointerEntered)
+      .on("pointermove", pointerMoved)
+      .on("pointerleave", pointerLeft)
+      .on("touchstart", (event) => event.preventDefault());
 
-    selectedSeries.current = new Set(data.series.map((d) => d.label));
-    selectedDateExtent.current = d3.extent(data.dates);
+    const ro = new ResizeObserver(() => resized(brush));
+    ro.observe(chartRef.current);
 
-    // const focusX = d3.scaleUtc();
-    const fys = axes.y.map(({ isLogScale }) => {
-      const scale = isLogScale ? d3.scaleLog : d3.scaleLinear;
-      return scale().range([focusHeight - marginBottom, marginTop]);
-    });
-
-    const cys = axes.y.map(({ isLogScale }) => {
-      const scale = isLogScale ? d3.scaleLog : d3.scaleLinear;
-      return scale().range([contextHeight - marginBottom, marginTop]);
-    });
-
-    pathGenerators.current = pg;
-
-    focusYs.current = fys;
-    contextYs.current = cys;
-
-    setReady(true);
+    return () => {
+      ro.disconnect();
+      brush.on("start", null).on("brush", null).on("end", null);
+    };
   }, []);
 
   useEffect(() => {
-    if (ready) {
-      stackData();
-      wrangle();
-
-      const brush = d3
-        .brushX()
-        .on("start", brushStarted)
-        .on("brush", brushed)
-        .on("end", brushEnded);
-
-      d3.select(focusRef.current)
-        .select(".capture-rect")
-        .on("pointerenter", pointerEntered)
-        .on("pointermove", pointerMoved)
-        .on("pointerleave", pointerLeft)
-        .on("touchstart", (event) => event.preventDefault());
-
-      const ro = new ResizeObserver(() => resized(brush));
-      ro.observe(chartRef.current);
-
-      return () => {
-        ro.disconnect();
-        brush.on("start", null).on("brush", null).on("end", null);
-      };
-    }
-  }, [ready]);
-
-  useEffect(() => {
-    if (ready) {
-      stackData();
-      wrangle();
-      render();
-    }
+    stackData();
+    wrangle();
+    render();
   }, [ss]);
 
+  const boundedWidth = width - marginLeft - marginRight;
   return (
     <article
       ref={parentRef}
       id={id}
-      className="relative overflow-hidden min-h-[600px] mb-10 bg-surface-1 p-6 rounded-md"
+      className="relative overflow-hidden mb-10 bg-surface-1 p-6 rounded-md  min-h-[700px]"
     >
       {/* Loader */}
       <div
@@ -773,7 +716,35 @@ const LineChart = memo(function LineChart({
           </clipPath>
 
           {/* Peripherals */}
-          <g className="peripherals"></g>
+          <g className="peripherals">
+            {peripherals.highlightedAreas
+              ? peripherals.highlightedAreas.map((a) => (
+                  <rect
+                    key={a.color}
+                    className="highlighted-area-rect"
+                    clipPath={`url(#${clipId})`}
+                    fill={a.color}
+                    x={a.x0 === undefined ? marginLeft : focusX.current(a.x0)}
+                    y={
+                      a.y0 === undefined
+                        ? marginTop
+                        : focusYs.current[a.axisIndex](a.y0)
+                    }
+                    width={
+                      a.x0 === undefined
+                        ? boundedWidth
+                        : focusX.current(a.x1) - focusX.current(a.x0)
+                    }
+                    height={
+                      a.x0 === undefined
+                        ? boundedFocusHeight
+                        : focusYs.current[a.axisIndex](a.y1) -
+                          focusYs.current[a.axisIndex](a.y0)
+                    }
+                  ></rect>
+                ))
+              : null}
+          </g>
 
           {/* X axis */}
           <g className="axis axis--x axis-label"></g>
@@ -842,13 +813,11 @@ const LineChart = memo(function LineChart({
 
         {/* Swatches */}
         <div>
-          {ready ? (
-            <Swatches
-              series={data.series}
-              selectedSeries={selectedSeries}
-              setSS={setSS}
-            />
-          ) : null}
+          <Swatches
+            series={data.series}
+            selectedSeries={selectedSeries}
+            setSS={setSS}
+          />
         </div>
 
         {/* Footnotes */}
