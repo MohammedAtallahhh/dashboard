@@ -7,6 +7,7 @@ import Tooltip from "./Tooltip";
 import Swatches from "./Swatches";
 import CSVButton from "../CSVButton";
 import ScreenshotButton from "../ScreenshotButton";
+import LoadingSpinner from "../LoadingSpinner";
 
 const LineChart = memo(function LineChart({
   id,
@@ -103,7 +104,6 @@ const LineChart = memo(function LineChart({
   );
   const [ss, setSS] = useState([]);
 
-  const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tooltipShown, setTooltipShown] = useState(false);
   const [active, setActive] = useState(null);
@@ -466,9 +466,9 @@ const LineChart = memo(function LineChart({
   }
 
   function resized(brush) {
-    if (!chartRef.current) return;
     const container = d3.select(chartRef.current);
     if (
+      !container ||
       container.node().clientWidth === 0 ||
       container.node().clientWidth === width
     )
@@ -678,20 +678,7 @@ const LineChart = memo(function LineChart({
       className="relative overflow-hidden mb-10 bg-surface-1 p-6 rounded-md  min-h-[700px]"
     >
       {/* Loader */}
-      <div
-        className={`absolute inset-0 z-10 bg-inherit flex items-center justify-center ${
-          loading ? "" : "hidden"
-        }`}
-      >
-        <div
-          className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-gray-400 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-          role="status"
-        >
-          <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-            Loading...
-          </span>
-        </div>
-      </div>
+      <LoadingSpinner loading={loading} />
 
       <div ref={chartRef} className="line-area-chart grid gap-5">
         <h2 className="text-lg leading-normal">{title}</h2>

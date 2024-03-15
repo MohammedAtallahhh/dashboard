@@ -546,7 +546,6 @@ const ScatterTimeChart = ({
 
     const i = delaunay.find(xm, ym, iActive || 0);
 
-    console.log({ offsetY }, chartState.y(filteredData[i][1]));
     if (iActive !== i) {
       setIActive(i);
       renderActive(i);
