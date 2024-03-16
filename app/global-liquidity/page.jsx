@@ -1,38 +1,14 @@
-import dynamic from "next/dynamic";
-
-const WorldM2Growth = dynamic(() =>
-  import("@/components/GlobalLiquidity/WorldM2Growth")
-);
-const GlobalCentralBankAssets = dynamic(() =>
-  import("@/components/GlobalLiquidity/GlobalCentralBankAssets")
-);
-const SP500VSCentralBank = dynamic(() =>
-  import("@/components/GlobalLiquidity/SP500VSCentralBank")
-);
-const GCBAVSSP500MoM = dynamic(() =>
-  import("@/components/GlobalLiquidity/GCBAVSSP500MoM")
-);
-const GCBAVSSP500QoQ = dynamic(() =>
-  import("@/components/GlobalLiquidity/GCBAVSSP500QoQ")
-);
-const GCBAVSSP5006MChange = dynamic(() =>
-  import("@/components/GlobalLiquidity/GCBAVSSP5006MChange")
-);
-const GCBAVSSP500VSBitcoin = dynamic(() =>
-  import("@/components/GlobalLiquidity/GCBAVSSP500VSBitcoin")
-);
-const BitcoinVSSP500OneMonthChange = dynamic(() =>
-  import("@/components/GlobalLiquidity/BitcoinVSSP500OneMonthChange")
-);
-const BitcoinVSSP500ThreeMonthChange = dynamic(() =>
-  import("@/components/GlobalLiquidity/BitcoinVSSP500ThreeMonthChange")
-);
-const BitcoinVSSP500SixMonthChange = dynamic(() =>
-  import("@/components/GlobalLiquidity/BitcoinVSSP500SixMonthChange")
-);
-const BitcoinVSSP500TwelveMonthChange = dynamic(() =>
-  import("@/components/GlobalLiquidity/BitcoinVSSP500TwelveMonthChange")
-);
+import WorldM2Growth from "@/components/GlobalLiquidity/WorldM2Growth";
+import GlobalCentralBankAssets from "@/components/GlobalLiquidity/GlobalCentralBankAssets";
+import SP500VSCentralBank from "@/components/GlobalLiquidity/SP500VSCentralBank";
+import GCBAVSSP500MoM from "@/components/GlobalLiquidity/GCBAVSSP500MoM";
+import GCBAVSSP500QoQ from "@/components/GlobalLiquidity/GCBAVSSP500QoQ";
+import GCBAVSSP5006MChange from "@/components/GlobalLiquidity/GCBAVSSP5006MChange";
+import GCBAVSSP500VSBitcoin from "@/components/GlobalLiquidity/GCBAVSSP500VSBitcoin";
+import BitcoinVSSP500OneMonthChange from "@/components/GlobalLiquidity/BitcoinVSSP500OneMonthChange";
+import BitcoinVSSP500ThreeMonthChange from "@/components/GlobalLiquidity/BitcoinVSSP500ThreeMonthChange";
+import BitcoinVSSP500SixMonthChange from "@/components/GlobalLiquidity/BitcoinVSSP500SixMonthChange";
+import BitcoinVSSP500TwelveMonthChange from "@/components/GlobalLiquidity/BitcoinVSSP500TwelveMonthChange";
 
 import { getData } from "@/lib/getGlobalLiquidityData";
 import { colors } from "@/lib/colors";

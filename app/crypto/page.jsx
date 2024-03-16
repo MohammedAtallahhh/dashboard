@@ -1,8 +1,4 @@
-import dynamic from "next/dynamic";
-
-const TokensOutperforming = dynamic(() =>
-  import("@/components/Crypto/TokensOutperforming")
-);
+import TokensOutperforming from "@/components/Crypto/TokensOutperforming";
 
 import { getData } from "@/lib/getCryptoData";
 import { colors } from "@/lib/colors";

@@ -1,23 +1,9 @@
-import dynamic from "next/dynamic";
-
-const FedLiquidityVsSP500 = dynamic(() =>
-  import("@/components/UsLiquidity/FedLiquidityVsSP500")
-);
-const FedLiquidityOscillatorVsSP500 = dynamic(() =>
-  import("@/components/UsLiquidity/FedLiquidityOscillatorVsSP500")
-);
-const OneMonthChange = dynamic(() =>
-  import("@/components/UsLiquidity/OneMonthChange")
-);
-const ThreeMonthChange = dynamic(() =>
-  import("@/components/UsLiquidity/ThreeMonthChange")
-);
-const SixMonthChange = dynamic(() =>
-  import("@/components/UsLiquidity/SixMonthChange")
-);
-const OtherDeposit = dynamic(() =>
-  import("@/components/UsLiquidity/OtherDeposit")
-);
+import FedLiquidityVsSP500 from "@/components/UsLiquidity/FedLiquidityVsSP500";
+import FedLiquidityOscillatorVsSP500 from "@/components/UsLiquidity/FedLiquidityOscillatorVsSP500";
+import OneMonthChange from "@/components/UsLiquidity/OneMonthChange";
+import ThreeMonthChange from "@/components/UsLiquidity/ThreeMonthChange";
+import SixMonthChange from "@/components/UsLiquidity/SixMonthChange";
+import OtherDeposit from "@/components/UsLiquidity/OtherDeposit";
 
 import { getData } from "@/lib/getUsLiquidityData";
 import { colors } from "@/lib/colors";
