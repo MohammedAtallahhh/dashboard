@@ -1,13 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import dynamic from "next/dynamic";
 import React, { memo, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import { throttle } from "lodash";
 
-import Tooltip from "./Tooltip";
 import Swatches from "./Swatches";
 import CSVButton from "../CSVButton";
 import ScreenshotButton from "../ScreenshotButton";
 import LoadingSpinner from "../LoadingSpinner";
+
+const Tooltip = dynamic(() => import("./Tooltip"), { ssr: false });
 
 const LineChart = memo(function LineChart({
   id,
@@ -465,7 +466,7 @@ const LineChart = memo(function LineChart({
       );
   }
 
-  const resized = throttle((brush) => {
+  const resized = (brush) => {
     if (!chartRef.current) return;
     const container = d3.select(chartRef.current);
 
@@ -498,7 +499,7 @@ const LineChart = memo(function LineChart({
     contextSvg.attr("viewBox", [0, 0, w, contextHeight]);
 
     render();
-  }, 300);
+  };
 
   function brushStarted() {
     d3.select(contextRef.current)
@@ -540,7 +541,7 @@ const LineChart = memo(function LineChart({
     setTooltipShown(true);
   }
 
-  const pointerMoved = throttle((event) => {
+  const pointerMoved = (event) => {
     const container = d3.select(chartRef.current);
 
     const [xm, ym] = d3.pointer(event, container.node());
@@ -555,7 +556,7 @@ const LineChart = memo(function LineChart({
     }
 
     moveTooltip(focusX.current(xDate), ym);
-  }, 100);
+  };
 
   const pointerLeft = () => {
     d3.select(focusRef.current).select(".active-g").classed("is-active", false);

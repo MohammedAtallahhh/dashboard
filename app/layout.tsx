@@ -6,7 +6,6 @@ import Navbar from "../components/Header";
 import "./globals.css";
 import "../css/line-area-chart.css";
 import "../css/scatter-time-chart.css";
-import { SkeletonTheme } from "react-loading-skeleton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,12 +23,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <SkeletonTheme>
-        <body className={inter.className}>
-          <Navbar />
-          {children}
-        </body>
-      </SkeletonTheme>
+      <body className={inter.className}>
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }

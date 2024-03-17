@@ -1,12 +1,13 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import dynamic from "next/dynamic";
 import React, { useEffect, useRef, useState } from "react";
 import regression from "regression";
 import * as d3 from "d3";
-import { throttle } from "lodash";
 
 import CSVButton from "../CSVButton";
 import ScreenshotButton from "../ScreenshotButton";
 
-import Tooltip from "./Tooltip";
+const Tooltip = dynamic(() => import("./Tooltip"), { ssr: false });
 
 const ScatterTimeChart = ({
   id,
@@ -530,7 +531,7 @@ const ScatterTimeChart = ({
     chartState.activeG.classed("is-active", true);
   }
 
-  const pointerMoved = throttle((event) => {
+  const pointerMoved = (event) => {
     const hasData = filteredData.length > 0;
 
     if (!hasData) return;
@@ -557,7 +558,7 @@ const ScatterTimeChart = ({
         chartState.y(filteredData[i][1]) + offsetY
       );
     }
-  }, 100);
+  };
 
   function pointerLeft() {
     const hasData = filteredData.length > 0;
