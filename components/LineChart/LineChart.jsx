@@ -465,14 +465,9 @@ const LineChart = memo(function LineChart({
       );
   }
 
-  function resized(brush) {
+  const resized = throttle((brush) => {
+    if (!chartRef.current) return;
     const container = d3.select(chartRef.current);
-    if (
-      !container ||
-      container.node().clientWidth === 0 ||
-      container.node().clientWidth === width
-    )
-      return;
 
     const focusSvg = d3.select(focusRef.current);
     const contextSvg = d3.select(contextRef.current);
@@ -503,7 +498,7 @@ const LineChart = memo(function LineChart({
     contextSvg.attr("viewBox", [0, 0, w, contextHeight]);
 
     render();
-  }
+  }, 300);
 
   function brushStarted() {
     d3.select(contextRef.current)
@@ -827,8 +822,9 @@ const LineChart = memo(function LineChart({
         >
           {tooltipShown ? (
             <Tooltip
-              data={data}
+              series={data.series}
               selectedSeries={selectedSeries}
+              dates={data.dates}
               active={active}
             />
           ) : null}

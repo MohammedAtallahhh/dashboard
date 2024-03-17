@@ -1,7 +1,7 @@
 import TokensOutperforming from "@/components/Crypto/TokensOutperforming";
 
 import { getData } from "@/lib/getCryptoData";
-import { colors } from "@/lib/colors";
+import { colors } from "@/helpers/constants";
 
 const CryptoPage = async () => {
   const data = await getData();

@@ -1,8 +1,6 @@
-import React from "react";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 
 import Camera from "./icons/Camera";
-import { toPng } from "html-to-image";
 
 const ScreenshotButton = ({ target, title }) => {
   // const watermarkedDataURL = (canvas, text) => {
@@ -28,21 +26,6 @@ const ScreenshotButton = ({ target, title }) => {
   // };
 
   const downloadImage = () => {
-    // html2canvas(target, {
-    //   backgroundColor: "#1b1b1e",
-    //   ignoreElements: (el) => el.classList.contains("ignore-me"),
-    // }).then((canvas) => {
-    //   // const imgData = watermarkedDataURL(canvas, "WATERMARK");
-    //   const imgData = canvas
-    //     .toDataURL("image/jpeg")
-    //     .replace("image/jpeg", "image/octet-stream");
-    //   const link = document.createElement("a");
-
-    //   link.href = imgData;
-    //   link.download = `${title}-screenshot.jpg`;
-    //   link.click();
-    // });
-
     toPng(target, {
       // filter: (node) => !node.classList.contains("ignore-me"),
     }).then(function (dataUrl) {

@@ -11,7 +11,7 @@ import BitcoinVSSP500SixMonthChange from "@/components/GlobalLiquidity/BitcoinVS
 import BitcoinVSSP500TwelveMonthChange from "@/components/GlobalLiquidity/BitcoinVSSP500TwelveMonthChange";
 
 import { getData } from "@/lib/getGlobalLiquidityData";
-import { colors } from "@/lib/colors";
+import { colors } from "@/helpers/constants";
 
 const GlobalLiquidityPage = async () => {
   const data = await getData();

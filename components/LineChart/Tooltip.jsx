@@ -1,12 +1,12 @@
 import { utcFormat } from "d3";
 
-const Tooltip = ({ data, selectedSeries, active }) => {
-  const date = utcFormat("%B %-d, %Y")(data.dates[active]);
+const Tooltip = ({ series, dates, selectedSeries, active }) => {
+  const date = utcFormat("%B %-d, %Y")(dates[active]);
 
   return (
     <>
       <div className="text-sm text-text-light mb-3">{date}</div>
-      {data.series
+      {series
         .filter(
           (d) =>
             selectedSeries.current.has(d.label) &&

@@ -6,7 +6,7 @@ import SixMonthChange from "@/components/UsLiquidity/SixMonthChange";
 import OtherDeposit from "@/components/UsLiquidity/OtherDeposit";
 
 import { getData } from "@/lib/getUsLiquidityData";
-import { colors } from "@/lib/colors";
+import { colors } from "@/helpers/constants";
 
 export default async function Home() {
   const data = await getData();

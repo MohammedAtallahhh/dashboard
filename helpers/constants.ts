@@ -1,4 +1,4 @@
-export const color = {
+export const colors = {
   scatter: {
     default: "#169d7d",
     highlight: "#ffffff",
